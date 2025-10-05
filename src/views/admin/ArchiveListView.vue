@@ -7,7 +7,6 @@ import { NButton, NDataTable, NPagination, NTag } from 'naive-ui'
 import { listArchivedProjects } from '../../api/admin'
 import type { ArchivedProjectSnapshot } from '../../types/admin'
 import { formatDate } from '../../utils/format'
-import EmptyState from '../../components/common/EmptyState.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -105,7 +104,6 @@ const columns = computed<DataTableColumns<ArchivedProjectSnapshot>>(() => [
 
 const archived = computed(() => archivedQuery.data.value)
 const isLoading = computed(() => archivedQuery.isFetching.value)
-const hasData = computed(() => (archived.value?.data.length ?? 0) > 0)
 
 function handlePageSizeChange(pageSize: number) {
   filters.pageSize = pageSize
@@ -139,8 +137,6 @@ function handlePageSizeChange(pageSize: number) {
       :row-key="(row: ArchivedProjectSnapshot) => row.id"
       bordered
     />
-
-    <EmptyState v-if="!isLoading && !hasData">暂无归档项目</EmptyState>
 
     <div class="flex items-center justify-end">
       <n-pagination

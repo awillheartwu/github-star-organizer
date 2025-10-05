@@ -60,7 +60,7 @@ const snapshotPretty = computed(() => {
           <dt class="text-xs uppercase text-slate-400">快照数据</dt>
           <dd>
             <n-code v-if="snapshotPretty" :code="snapshotPretty" language="json" show-line-numbers />
-            <span v-else class="text-slate-500">暂无快照数据</span>
+            <span v-else class="text-slate-500">No Data</span>
           </dd>
         </div>
       </dl>

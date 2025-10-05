@@ -7,7 +7,6 @@ import { NButton, NDataTable, NPagination, NTag } from 'naive-ui'
 import { listAiBatches } from '../../api/admin'
 import type { AiBatchItem } from '../../types/admin'
 import { formatDate } from '../../utils/format'
-import EmptyState from '../../components/common/EmptyState.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -103,7 +102,6 @@ const columns = computed<DataTableColumns<AiBatchItem>>(() => [
 
 const batches = computed(() => batchQuery.data.value)
 const isLoading = computed(() => batchQuery.isFetching.value)
-const hasData = computed(() => (batches.value?.data.length ?? 0) > 0)
 
 function handlePageSizeChange(pageSize: number) {
   filters.pageSize = pageSize
@@ -125,8 +123,6 @@ function handlePageSizeChange(pageSize: number) {
       :row-key="(row: AiBatchItem) => row.key"
       bordered
     />
-
-    <EmptyState v-if="!isLoading && !hasData">暂无批次</EmptyState>
 
     <div class="flex items-center justify-end">
       <n-pagination

@@ -69,7 +69,7 @@ const tag = computed(() => tagQuery.data.value)
           </n-list-item>
         </template>
         <n-list-item v-else>
-          <span class="text-sm text-slate-500">暂无关联项目</span>
+          <span class="text-sm text-slate-500">No Data</span>
         </n-list-item>
       </n-list>
     </n-card>

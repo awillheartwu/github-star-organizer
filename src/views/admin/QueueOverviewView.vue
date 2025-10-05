@@ -62,7 +62,7 @@ const hasQueues = computed(() => queueEntries.value.length > 0)
         </n-grid-item>
       </n-grid>
     </template>
-    <EmptyState v-else>暂无队列数据</EmptyState>
+    <EmptyState v-else />
 
     <n-card title="并发配置" size="small">
       <div class="grid gap-4 md:grid-cols-3">

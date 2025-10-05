@@ -14,7 +14,7 @@
       </svg>
     </slot>
     <p class="text-sm">
-      <slot>暂无数据</slot>
+      <slot>No Data</slot>
     </p>
   </div>
 </template>

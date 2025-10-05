@@ -56,7 +56,7 @@ const statsPretty = computed(() => {
           <dt class="text-xs uppercase text-slate-400">统计数据</dt>
           <dd>
             <n-code v-if="statsPretty" :code="statsPretty" language="json" show-line-numbers />
-            <span v-else class="text-slate-500">暂无统计数据</span>
+            <span v-else class="text-slate-500">No Data</span>
           </dd>
         </div>
       </dl>

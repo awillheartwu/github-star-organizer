@@ -6,7 +6,6 @@ import { NButton, NInput, NSelect, NSpace, NSwitch, NSpin, NPagination } from 'n
 import FilterBar from '../../components/common/FilterBar.vue'
 import TagSelector from '../../components/common/TagSelector.vue'
 import ProjectCard from '../../components/projects/ProjectCard.vue'
-import EmptyState from '../../components/common/EmptyState.vue'
 import type { ProjectFilters } from '../../types/project'
 import type { TagListItem } from '../../types/tag'
 import { useProjectsQuery } from '../../queries/projects'
@@ -120,6 +119,18 @@ function handlePageSizeChange(pageSize: number) {
 const projects = computed(() => projectsQuery.data.value)
 const isFetching = computed(() => projectsQuery.isFetching.value)
 const isEmpty = computed(() => !projects.value || projects.value.data.length === 0)
+const totalItems = computed(() => projects.value?.total ?? 0)
+
+watch(
+  () => [totalItems.value, filters.pageSize],
+  ([total, pageSize]) => {
+    const maxPage = Math.max(Math.ceil(total / pageSize), 1)
+    if (filters.page > maxPage) {
+      filters.page = maxPage
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -166,13 +177,11 @@ const isEmpty = computed(() => !projects.value || projects.value.data.length ===
       <div v-if="!isEmpty" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <ProjectCard v-for="project in projects?.data ?? []" :key="project.id" :project="project" />
       </div>
-      <EmptyState v-else>暂无符合条件的项目</EmptyState>
     </n-spin>
 
     <div class="flex items-center justify-end">
       <n-pagination
         v-model:page="filters.page"
-        :page-count="Math.max(Math.ceil((projects?.total ?? 0) / filters.pageSize), 1)"
         :item-count="projects?.total ?? 0"
         :page-size="filters.pageSize"
         show-size-picker

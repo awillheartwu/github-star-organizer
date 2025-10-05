@@ -15,7 +15,6 @@ import {
   NPagination,
 } from 'naive-ui'
 import FilterBar from '../../components/common/FilterBar.vue'
-import EmptyState from '../../components/common/EmptyState.vue'
 import type { TagListItem } from '../../types/tag'
 import { formatDate } from '../../utils/format'
 import { useTagListQuery, useTagMutations } from '../../queries/tags'
@@ -176,7 +175,18 @@ function handlePageSizeChange(pageSize: number) {
 
 const tags = computed(() => tagQuery.data.value)
 const isLoading = computed(() => tagQuery.isFetching.value)
-const hasData = computed(() => (tags.value?.data.length ?? 0) > 0)
+const totalItems = computed(() => tags.value?.total ?? 0)
+
+watch(
+  () => [totalItems.value, filters.pageSize],
+  ([total, pageSize]) => {
+    const maxPage = Math.max(Math.ceil(total / pageSize), 1)
+    if (filters.page > maxPage) {
+      filters.page = maxPage
+    }
+  },
+  { immediate: true }
+)
 
 const createModalVisible = ref(false)
 const editModalVisible = ref(false)
@@ -250,12 +260,10 @@ function handleDelete(row: TagListItem) {
       :row-key="(row: TagListItem) => row.id"
       bordered
     />
-    <EmptyState v-if="!isLoading && !hasData">暂无标签</EmptyState>
 
     <div class="flex items-center justify-end">
       <n-pagination
         v-model:page="filters.page"
-        :page-count="Math.max(Math.ceil((tags?.total ?? 0) / filters.pageSize), 1)"
         :item-count="tags?.total ?? 0"
         :page-size="filters.pageSize"
         show-size-picker
