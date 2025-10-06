@@ -54,6 +54,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true, title: '标签详情' },
       },
       {
+        path: 'account/profile',
+        name: 'account-profile',
+        component: () => import('../views/account/UserProfileView.vue'),
+        meta: { requiresAuth: true, title: '账户信息' },
+      },
+      {
         path: 'admin',
         redirect: { name: 'admin-queues' },
         meta: { requiresAuth: true, roles: ['ADMIN'], title: '管理后台' },

@@ -1,5 +1,5 @@
 import { api } from './http'
-import type { PaginatedResponse } from './types'
+import type { ApiResponse, PaginatedResponse } from './types'
 import type { ProjectSummary, ProjectFilters, ProjectUpdatePayload } from '../types/project'
 
 export interface ProjectListQuery extends ProjectFilters {
@@ -15,6 +15,8 @@ export interface ProjectListQuery extends ProjectFilters {
   createdAtEnd?: string
   updatedAtStart?: string
   updatedAtEnd?: string
+  lastCommitStart?: string
+  lastCommitEnd?: string
 }
 
 function buildQueryParams(query: ProjectListQuery) {
@@ -37,43 +39,82 @@ function buildQueryParams(query: ProjectListQuery) {
     createdAtEnd,
     updatedAtStart,
     updatedAtEnd,
+    lastCommitStart,
+    lastCommitEnd,
     ...rest
   } = query
 
-  const params: Record<string, unknown> = { ...rest }
-  if (page) params.page = page
-  if (pageSize) params.pageSize = pageSize
-  if (keyword) params.keyword = keyword
-  if (language) params.language = language
-  if (languages?.length) params.languages = languages
-  if (favorite !== undefined) params.favorite = favorite
-  if (pinned !== undefined) params.pinned = pinned
-  if (archived !== undefined) params.archived = archived
-  if (tagNames?.length) params.tagNames = tagNames
-  if (starsMin !== undefined) params.starsMin = starsMin
-  if (starsMax !== undefined) params.starsMax = starsMax
-  if (forksMin !== undefined) params.forksMin = forksMin
-  if (forksMax !== undefined) params.forksMax = forksMax
-  if (createdAtStart) params.createdAtStart = createdAtStart
-  if (createdAtEnd) params.createdAtEnd = createdAtEnd
-  if (updatedAtStart) params.updatedAtStart = updatedAtStart
-  if (updatedAtEnd) params.updatedAtEnd = updatedAtEnd
+  const searchParams = new URLSearchParams()
+  const append = (key: string, value: unknown) => {
+    if (value === undefined || value === null) return
+    searchParams.append(key, String(value))
+  }
+
+  append('page', page)
+  append('pageSize', pageSize)
+  append('keyword', keyword)
+
+  if (!languages?.length && language) {
+    append('language', language)
+  }
+
+  if (languages?.length) {
+    for (const lang of languages) {
+      append('languages', lang)
+    }
+  }
+
+  if (favorite !== undefined) append('favorite', favorite)
+  if (pinned !== undefined) append('pinned', pinned)
+  if (archived !== undefined) append('archived', archived)
+
+  if (tagNames?.length) {
+    for (const tag of tagNames) {
+      append('tagNames', tag)
+    }
+  }
+
+  append('starsMin', starsMin)
+  append('starsMax', starsMax)
+  append('forksMin', forksMin)
+  append('forksMax', forksMax)
+  append('createdAtStart', createdAtStart)
+  append('createdAtEnd', createdAtEnd)
+  append('updatedAtStart', updatedAtStart)
+  append('updatedAtEnd', updatedAtEnd)
+  append('lastCommitStart', lastCommitStart)
+  append('lastCommitEnd', lastCommitEnd)
+
+  Object.entries(rest).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        append(key, item)
+      }
+    } else {
+      append(key, value)
+    }
+  })
 
   if (sort) {
     const [orderBy = '', orderDirection = 'asc'] = sort.split(':')
     if (orderBy) {
-      params.orderBy = orderBy
-      params.orderDirection = orderDirection
+      append('orderBy', orderBy)
+      append('orderDirection', orderDirection)
     }
   }
 
-  return params
+  return searchParams
 }
 
 export async function listProjects(query: ProjectListQuery) {
   const params = buildQueryParams(query)
   const { data } = await api.get<PaginatedResponse<ProjectSummary[]>>('/projects', { params })
   return data
+}
+
+export async function listProjectLanguages() {
+  const { data } = await api.get<ApiResponse<string[]>>('/projects/languages')
+  return data.data
 }
 
 export async function getProject(id: string) {
@@ -84,4 +125,8 @@ export async function getProject(id: string) {
 export async function updateProject(id: string, payload: ProjectUpdatePayload) {
   const { data } = await api.put<{ message: string; data: ProjectSummary }>(`/projects/${id}`, payload)
   return data.data
+}
+
+export async function deleteProject(id: string) {
+  await api.delete(`/projects/${id}`)
 }

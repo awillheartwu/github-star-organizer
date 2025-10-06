@@ -1,6 +1,13 @@
 import { computed, type ComputedRef } from 'vue'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
-import { listProjects, getProject, updateProject, type ProjectListQuery } from '../api/projects'
+import {
+  listProjects,
+  getProject,
+  updateProject,
+  deleteProject,
+  listProjectLanguages,
+  type ProjectListQuery,
+} from '../api/projects'
 import type { ProjectSummary, ProjectUpdatePayload } from '../types/project'
 import type { PaginatedResponse } from '../api/types'
 import { useMessage } from '../utils/feedback'
@@ -8,7 +15,18 @@ import { useMessage } from '../utils/feedback'
 function normalizeProjectFilters(filters: ProjectListQuery) {
   return {
     ...filters,
-    tagNames: filters.tagNames ? [...filters.tagNames].sort() : undefined,
+    tagNames: filters.tagNames?.length ? [...filters.tagNames].sort() : undefined,
+    languages: filters.languages?.length ? [...filters.languages].sort() : undefined,
+    starsMin: filters.starsMin ?? undefined,
+    starsMax: filters.starsMax ?? undefined,
+    forksMin: filters.forksMin ?? undefined,
+    forksMax: filters.forksMax ?? undefined,
+    createdAtStart: filters.createdAtStart || undefined,
+    createdAtEnd: filters.createdAtEnd || undefined,
+    updatedAtStart: filters.updatedAtStart || undefined,
+    updatedAtEnd: filters.updatedAtEnd || undefined,
+    lastCommitStart: filters.lastCommitStart || undefined,
+    lastCommitEnd: filters.lastCommitEnd || undefined,
   }
 }
 
@@ -25,6 +43,14 @@ export function useProjectDetailQuery(projectId: ComputedRef<string | undefined>
     queryKey: computed(() => ['project-detail', projectId.value]),
     enabled: computed(() => Boolean(projectId.value)),
     queryFn: () => getProject(projectId.value as string),
+  })
+}
+
+export function useProjectLanguagesQuery() {
+  return useQuery({
+    queryKey: ['project-languages'],
+    queryFn: () => listProjectLanguages(),
+    staleTime: 1000 * 60 * 5,
   })
 }
 
@@ -59,6 +85,24 @@ export function useProjectUpdateMutation() {
     },
     onError: (error) => {
       const msg = (error as Error | undefined)?.message ?? '操作失败'
+      message.error(msg)
+    },
+  })
+}
+
+export function useProjectDeleteMutation() {
+  const queryClient = useQueryClient()
+  const message = useMessage()
+
+  return useMutation<void, unknown, string>({
+    mutationFn: (id: string) => deleteProject(id),
+    onSuccess: (_, id) => {
+      message.success('项目已删除')
+      queryClient.removeQueries({ queryKey: ['project-detail', id] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+    },
+    onError: (error) => {
+      const msg = (error as Error | undefined)?.message ?? '删除失败'
       message.error(msg)
     },
   })

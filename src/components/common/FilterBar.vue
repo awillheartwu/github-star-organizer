@@ -1,8 +1,9 @@
 <template>
-  <section class="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-    <div class="flex flex-wrap items-center gap-3">
+  <section class="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-sm">
+    <div class="flex flex-col gap-5">
       <slot name="filters" />
-      <div class="flex-1" />
+    </div>
+    <div class="flex flex-wrap items-center justify-end gap-2">
       <slot name="actions" />
     </div>
     <slot />

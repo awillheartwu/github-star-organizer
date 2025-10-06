@@ -11,6 +11,7 @@ export interface NavigationItem {
 export const primaryNavigation: NavigationItem[] = [
   { key: 'projects', label: '项目', routeName: 'projects' },
   { key: 'tags', label: '标签', routeName: 'tags' },
+  { key: 'account-profile', label: '账户信息', routeName: 'account-profile' },
 ]
 
 export const adminNavigation: NavigationItem[] = [

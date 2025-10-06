@@ -25,3 +25,13 @@ export async function fetchCurrentUser() {
 export async function logout() {
   await api.post('/auth/logout')
 }
+
+export interface ChangePasswordPayload {
+  oldPassword: string
+  newPassword: string
+}
+
+export async function changePassword(payload: ChangePasswordPayload) {
+  const { data } = await api.post<ApiResponse<{ message: string }>>('/auth/change-password', payload)
+  return data.message
+}

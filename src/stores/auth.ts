@@ -7,10 +7,29 @@ import {
   login as loginRequest,
   refreshAccessToken as refreshTokenRequest,
   logout as logoutRequest,
+  changePassword as changePasswordRequest,
 } from '../api/auth'
-import type { LoginPayload } from '../api/auth'
+import type { LoginPayload, ChangePasswordPayload } from '../api/auth'
 
 const ACCESS_TOKEN_KEY = 'gsor.access_token'
+const REFRESH_MARGIN_MS = 60_000
+
+function getTokenExpiresAt(token: string): number | null {
+  const segments = token.split('.')
+  if (segments.length < 2) return null
+  const payloadSegment = segments[1].replace(/-/g, '+').replace(/_/g, '/')
+  const paddingLength = (4 - (payloadSegment.length % 4)) % 4
+  const padded = payloadSegment.padEnd(payloadSegment.length + paddingLength, '=')
+  const decode = typeof globalThis.atob === 'function' ? globalThis.atob : null
+  if (!decode) return null
+  try {
+    const payload = JSON.parse(decode(padded)) as { exp?: number }
+    if (typeof payload.exp !== 'number') return null
+    return payload.exp * 1000
+  } catch {
+    return null
+  }
+}
 
 function readStoredToken() {
   if (typeof window === 'undefined') return null
@@ -35,6 +54,7 @@ export const useAuthStore = defineStore('auth', () => {
   const ready = ref(false)
 
   let refreshPromise: Promise<string | null> | null = null
+  let refreshTimer: number | null = null
 
   const isAuthenticated = computed(() => Boolean(accessToken.value))
 
@@ -42,9 +62,44 @@ export const useAuthStore = defineStore('auth', () => {
     return accessToken.value
   }
 
+  function cancelScheduledRefresh() {
+    if (refreshTimer != null) {
+      if (typeof window !== 'undefined') {
+        window.clearTimeout(refreshTimer)
+      }
+      refreshTimer = null
+    }
+  }
+
+  function scheduleAccessTokenRefresh(token: string | null) {
+    cancelScheduledRefresh()
+
+    if (!token || typeof window === 'undefined') return
+    const expiresAt = getTokenExpiresAt(token)
+    if (!expiresAt) return
+
+    const ttl = expiresAt - Date.now()
+    if (ttl <= 0) {
+      refreshTimer = window.setTimeout(() => {
+        refreshTimer = null
+        refreshAccessToken().catch(() => void 0)
+      }, 0)
+      return
+    }
+
+    const leadTime =
+      ttl > REFRESH_MARGIN_MS ? REFRESH_MARGIN_MS : Math.max(Math.floor(ttl * 0.5), 1000)
+    const delay = Math.max(ttl - leadTime, 0)
+    refreshTimer = window.setTimeout(() => {
+      refreshTimer = null
+      refreshAccessToken().catch(() => void 0)
+    }, delay)
+  }
+
   function setToken(token: string | null) {
     accessToken.value = token
     persistToken(token)
+    scheduleAccessTokenRefresh(token)
   }
 
   function clearAuthState() {
@@ -62,6 +117,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (ready.value) return
     try {
       if (accessToken.value) {
+        scheduleAccessTokenRefresh(accessToken.value)
         await fetchMe()
       }
     } catch (error) {
@@ -121,6 +177,18 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function changePassword(payload: ChangePasswordPayload) {
+    try {
+      await changePasswordRequest(payload)
+      await logout({ silent: true })
+      return true
+    } catch (error) {
+      const msg = (error as Error | undefined)?.message ?? '修改密码失败'
+      message.error(msg)
+      throw error
+    }
+  }
+
   return {
     accessToken,
     user,
@@ -134,5 +202,6 @@ export const useAuthStore = defineStore('auth', () => {
     refreshAccessToken,
     fetchMe,
     clearAuthState,
+    changePassword,
   }
 })

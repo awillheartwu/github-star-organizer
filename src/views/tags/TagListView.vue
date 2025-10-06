@@ -239,10 +239,12 @@ function handleDelete(row: TagListItem) {
   <div class="flex flex-col gap-6">
     <FilterBar>
       <template #filters>
-        <n-input v-model:value="filters.keyword" class="w-64" clearable placeholder="搜索标签" />
-        <div class="flex items-center gap-2 text-sm text-slate-600">
-          <n-switch v-model:value="filters.archived" size="small" />
-          <span>仅显示归档</span>
+        <div class="flex flex-wrap items-center gap-3">
+          <n-input v-model:value="filters.keyword" class="w-64" clearable placeholder="搜索标签" />
+          <div class="flex items-center gap-2 text-sm text-slate-600">
+            <n-switch v-model:value="filters.archived" size="small" />
+            <span>仅显示归档</span>
+          </div>
         </div>
       </template>
       <template #actions>

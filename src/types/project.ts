@@ -37,12 +37,30 @@ export interface PaginatedProjects {
 export interface ProjectFilters {
   keyword?: string
   language?: string
+  languages?: string[]
   favorite?: boolean
   pinned?: boolean
+  archived?: boolean
   sort?: string
   page?: number
   pageSize?: number
   tagNames?: string[]
+  starsMin?: number
+  starsMax?: number
+  forksMin?: number
+  forksMax?: number
+  createdAtStart?: string
+  createdAtEnd?: string
+  updatedAtStart?: string
+  updatedAtEnd?: string
+  lastCommitStart?: string
+  lastCommitEnd?: string
+}
+
+export interface ProjectUpdateTag {
+  id?: string
+  name: string
+  description?: string | null
 }
 
 export interface ProjectUpdatePayload {
@@ -51,4 +69,6 @@ export interface ProjectUpdatePayload {
   pinned?: boolean
   archived?: boolean
   score?: number | null
+  tags?: ProjectUpdateTag[]
+  videoLinks?: string[]
 }

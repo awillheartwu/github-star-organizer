@@ -13,11 +13,15 @@ const { user } = storeToRefs(auth)
 const pageTitle = computed(() => route.meta.title ?? '仪表盘')
 
 const dropdownOptions = [
-  { label: '账户设置', key: 'profile', disabled: true },
+  { label: '账户信息', key: 'profile' },
   { label: '退出登录', key: 'logout' },
 ]
 
 async function handleSelect(key: string | number) {
+  if (key === 'profile') {
+    await router.push({ name: 'account-profile' })
+    return
+  }
   if (key === 'logout') {
     await auth.logout()
     await router.push({ name: 'login' })
@@ -34,7 +38,7 @@ async function handleSelect(key: string | number) {
     <n-dropdown trigger="hover" :options="dropdownOptions" @select="handleSelect">
       <n-button quaternary size="small">
         <n-space align="center" size="small">
-          <span>{{ user?.sub ?? '未知用户' }}</span>
+          <span>{{ user?.name ?? user?.sub ?? '未知用户' }}</span>
           <n-tag v-if="user?.role" size="tiny" type="info">{{ user.role }}</n-tag>
         </n-space>
       </n-button>

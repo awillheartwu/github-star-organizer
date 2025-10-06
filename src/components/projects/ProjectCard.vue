@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { NButton, NCard, NSpace, NTag } from 'naive-ui'
 import type { ProjectSummary } from '../../types/project'
 import { formatDate, formatNumber } from '../../utils/format'
@@ -16,6 +17,7 @@ const isPinned = computed(() => props.project.pinned)
 
 const auth = useAuthStore()
 const canPin = computed(() => auth.user?.role === 'ADMIN')
+const router = useRouter()
 
 const projectMutation = useProjectUpdateMutation()
 const pendingAction = ref<'favorite' | 'pinned' | null>(null)
@@ -52,6 +54,10 @@ async function togglePinned() {
     pendingAction.value = null
   }
 }
+
+function goToDetail() {
+  void router.push({ name: 'project-detail', params: { id: props.project.id } })
+}
 </script>
 
 <template>
@@ -87,6 +93,7 @@ async function togglePinned() {
             >
               {{ pinnedButtonLabel }}
             </n-button>
+            <n-button quaternary size="tiny" @click="goToDetail">详情</n-button>
           </n-space>
         </div>
         <p v-if="project.description" class="text-sm text-slate-500">{{ project.description }}</p>
