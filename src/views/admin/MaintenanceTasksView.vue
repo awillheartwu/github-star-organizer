@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/vue-query'
 import { NButton, NCard, NResult } from 'naive-ui'
 import { runMaintenance } from '../../api/admin'
 import { useMessage } from '../../utils/feedback'
+import { DETAIL_CARD_STYLE } from '../../constants/ui'
 
 const message = useMessage()
 const lastJobId = ref<string | null>(null)
@@ -22,6 +23,8 @@ const runMutation = useMutation({
 function executeMaintenance() {
   runMutation.mutate()
 }
+
+const detailCardStyle = DETAIL_CARD_STYLE
 </script>
 
 <template>
@@ -31,7 +34,7 @@ function executeMaintenance() {
       <p class="text-sm text-slate-500">手动执行定期清理与校验任务</p>
     </div>
 
-    <n-card size="large">
+    <n-card size="large" :style="detailCardStyle">
       <p class="mb-4 text-sm text-slate-600">
         维护任务将执行队列清理、令牌清理等操作，请在非高峰期使用。
       </p>

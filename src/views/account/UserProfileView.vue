@@ -17,6 +17,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { formatDate } from '../../utils/format'
 import { useMessage } from '../../utils/feedback'
+import { DETAIL_CARD_STYLE } from '../../constants/ui'
 
 const auth = useAuthStore()
 const { user, ready } = storeToRefs(auth)
@@ -29,6 +30,7 @@ const changeForm = reactive({
 })
 const router = useRouter()
 const message = useMessage()
+const detailCardStyle = DETAIL_CARD_STYLE
 
 async function refreshProfile() {
   if (refreshing.value) return
@@ -94,7 +96,7 @@ async function handleChangePassword() {
       <n-button size="small" :loading="refreshing" @click="refreshProfile">刷新</n-button>
     </div>
 
-    <n-card>
+    <n-card :style="detailCardStyle">
       <template v-if="user" #header>
         <div class="flex items-center gap-3">
           <span class="text-base font-semibold text-slate-900">基本资料</span>
@@ -117,7 +119,7 @@ async function handleChangePassword() {
       </template>
     </n-card>
 
-    <n-card>
+    <n-card :style="detailCardStyle">
       <template #header>
         <span class="text-base font-semibold text-slate-900">安全设置</span>
       </template>

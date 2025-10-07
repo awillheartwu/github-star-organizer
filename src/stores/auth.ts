@@ -8,8 +8,9 @@ import {
   refreshAccessToken as refreshTokenRequest,
   logout as logoutRequest,
   changePassword as changePasswordRequest,
+  register as registerRequest,
 } from '../api/auth'
-import type { LoginPayload, ChangePasswordPayload } from '../api/auth'
+import type { LoginPayload, ChangePasswordPayload, RegisterPayload } from '../api/auth'
 
 const ACCESS_TOKEN_KEY = 'gsor.access_token'
 const REFRESH_MARGIN_MS = 60_000
@@ -189,6 +190,19 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function register(payload: RegisterPayload) {
+    loading.value = true
+    try {
+      await registerRequest(payload)
+      message.success('注册成功，请使用该账号登录')
+      return true
+    } catch (error) {
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     accessToken,
     user,
@@ -203,5 +217,6 @@ export const useAuthStore = defineStore('auth', () => {
     fetchMe,
     clearAuthState,
     changePassword,
+    register,
   }
 })

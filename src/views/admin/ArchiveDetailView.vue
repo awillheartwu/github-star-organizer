@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { NAlert, NButton, NCard, NCode, NTag } from 'naive-ui'
 import { getArchivedProject } from '../../api/admin'
 import { formatDate } from '../../utils/format'
+import { DETAIL_CARD_STYLE } from '../../constants/ui'
 
 const route = useRoute()
 const router = useRouter()
@@ -26,6 +27,8 @@ const snapshotPretty = computed(() => {
     return String(archived.value.snapshot)
   }
 })
+
+const detailCardStyle = DETAIL_CARD_STYLE
 </script>
 
 <template>
@@ -42,7 +45,7 @@ const snapshotPretty = computed(() => {
       加载归档信息失败，请稍后重试。
     </n-alert>
 
-    <n-card v-if="archived" size="large">
+    <n-card v-if="archived" size="large" :style="detailCardStyle">
       <dl class="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
         <div>
           <dt class="text-xs uppercase text-slate-400">归档原因</dt>

@@ -14,6 +14,9 @@ const formModel = reactive({
   password: '',
 })
 
+if (typeof route.query.email === 'string') {
+  formModel.email = route.query.email
+}
 const rules: FormRules = {
   email: [
     { required: true, message: '请输入邮箱', trigger: ['input', 'blur'] },
@@ -66,5 +69,11 @@ async function handleSubmit() {
         登录
       </n-button>
     </n-form>
+    <div class="text-center text-sm text-slate-500">
+      还没有账号？
+      <RouterLink class="text-primary-500 transition hover:opacity-80" :to="{ name: 'register' }">
+        前往注册
+      </RouterLink>
+    </div>
   </div>
 </template>

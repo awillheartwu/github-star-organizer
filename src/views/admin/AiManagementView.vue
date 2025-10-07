@@ -15,6 +15,7 @@ import {
 } from 'naive-ui'
 import { enqueueAiSummary, enqueueAiSweep } from '../../api/admin'
 import { useMessage } from '../../utils/feedback'
+import { DETAIL_CARD_STYLE } from '../../constants/ui'
 
 const message = useMessage()
 
@@ -106,6 +107,8 @@ function enqueueSingle() {
 function enqueueSweep() {
   sweepMutation.mutate()
 }
+
+const detailCardStyle = DETAIL_CARD_STYLE
 </script>
 
 <template>
@@ -115,7 +118,7 @@ function enqueueSweep() {
       <p class="text-sm text-slate-500">手动触发项目摘要生成或批量扫描</p>
     </div>
 
-    <n-card title="单项目入列" size="large">
+    <n-card title="单项目入列" size="large" :style="detailCardStyle">
       <n-form label-width="120" label-placement="left">
         <n-form-item label="项目 ID 列表">
           <n-input
@@ -162,7 +165,7 @@ function enqueueSweep() {
       :description="singleResultDescription"
     />
 
-    <n-card title="批量扫描" size="large">
+    <n-card title="批量扫描" size="large" :style="detailCardStyle">
       <n-form label-width="120" label-placement="left">
         <n-form-item label="数量上限">
           <n-input-number v-model:value="sweepForm.limit" :min="1" :max="500" />

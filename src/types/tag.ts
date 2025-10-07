@@ -15,6 +15,9 @@ export interface TagDetail extends TagSummary {
     fullName?: string
     url?: string
   }>
+  projectsTotal?: number
+  projectsPage?: number
+  projectsPageSize?: number
 }
 
 export interface TagListItem extends TagDetail {

@@ -32,8 +32,18 @@ export async function listTags(query: TagListQuery) {
   return data
 }
 
-export async function getTag(id: string) {
-  const { data } = await api.get<{ message: string; data: TagDetail }>(`/tags/${id}`)
+export interface TagDetailQuery {
+  projectsPage?: number
+  projectsPageSize?: number
+}
+
+export async function getTag(id: string, params?: TagDetailQuery) {
+  const queryParams: Record<string, number> = {}
+  if (params?.projectsPage) queryParams.projectsPage = params.projectsPage
+  if (params?.projectsPageSize) queryParams.projectsPageSize = params.projectsPageSize
+  const { data } = await api.get<{ message: string; data: TagDetail }>(`/tags/${id}`, {
+    params: queryParams,
+  })
   return data.data
 }
 

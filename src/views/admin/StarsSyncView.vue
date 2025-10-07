@@ -18,6 +18,7 @@ import {
 import { triggerSyncStars, getSyncState } from '../../api/admin'
 import { useMessage } from '../../utils/feedback'
 import type { SyncState } from '../../types/admin'
+import { DETAIL_CARD_STYLE } from '../../constants/ui'
 
 const message = useMessage()
 
@@ -68,6 +69,8 @@ const lastTriggerDescription = computed(() => {
 function handleSubmit() {
   enqueueMutation.mutate()
 }
+
+const detailCardStyle = DETAIL_CARD_STYLE
 </script>
 
 <template>
@@ -77,7 +80,7 @@ function handleSubmit() {
       <p class="text-sm text-slate-500">手动入列 GitHub Stars 同步任务</p>
     </div>
 
-    <n-card title="同步参数" size="large">
+    <n-card title="同步参数" size="large" :style="detailCardStyle">
       <n-form label-placement="left" label-width="100">
         <n-form-item label="模式">
           <n-radio-group v-model:value="formModel.mode">
@@ -121,7 +124,7 @@ function handleSubmit() {
       :description="lastTriggerDescription"
     />
 
-    <n-card title="最近状态" size="small">
+    <n-card title="最近状态" size="small" :style="detailCardStyle">
       <template v-if="syncState">
         <dl class="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
           <div>

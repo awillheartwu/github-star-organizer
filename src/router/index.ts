@@ -21,6 +21,19 @@ const routes: RouteRecordRaw[] = [
     ],
   },
   {
+    path: '/register',
+    component: () => import('../layout/AuthLayout.vue'),
+    meta: { requiresAuth: false, layout: 'auth', title: '注册' },
+    children: [
+      {
+        path: '',
+        name: 'register',
+        component: () => import('../views/auth/RegisterView.vue'),
+        meta: { requiresAuth: false, title: '注册' },
+      },
+    ],
+  },
+  {
     path: '/',
     component: () => import('../layout/AppLayout.vue'),
     meta: { requiresAuth: true, layout: 'app' },
@@ -147,7 +160,7 @@ export function setupRouterGuards(routerInstance: Router, auth: AuthStore) {
   routerInstance.beforeEach(async (to, _from, next) => {
     loadingBar?.start()
 
-    if (to.name === 'login' && isAuthenticated.value) {
+    if ((to.name === 'login' || to.name === 'register') && isAuthenticated.value) {
       next({ name: 'projects' })
       return
     }

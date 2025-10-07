@@ -5,6 +5,7 @@ import { NAlert, NButton, NCard, NGrid, NGridItem, NStatistic } from 'naive-ui'
 import { getQueuesStatus } from '../../api/admin'
 import type { QueueCounts } from '../../types/admin'
 import EmptyState from '../../components/common/EmptyState.vue'
+import { DETAIL_CARD_STYLE } from '../../constants/ui'
 
 const queuesQuery = useQuery({
   queryKey: ['admin', 'queues'],
@@ -18,6 +19,7 @@ const queueEntries = computed(() => {
   return Object.entries(status.value.queues) as Array<[string, QueueCounts]>
 })
 const hasQueues = computed(() => queueEntries.value.length > 0)
+const detailCardStyle = DETAIL_CARD_STYLE
 </script>
 
 <template>
@@ -39,7 +41,7 @@ const hasQueues = computed(() => queueEntries.value.length > 0)
     <template v-if="hasQueues">
       <n-grid cols="1 640:3" x-gap="16" y-gap="16">
         <n-grid-item v-for="([name, queue]) in queueEntries" :key="name">
-          <n-card :title="name" size="small">
+          <n-card :title="name" size="small" :style="detailCardStyle">
             <div class="grid grid-cols-2 gap-3 text-sm text-slate-600">
               <div>
                 <span class="text-xs uppercase text-slate-400">等待</span>
@@ -64,7 +66,7 @@ const hasQueues = computed(() => queueEntries.value.length > 0)
     </template>
     <EmptyState v-else />
 
-    <n-card title="并发配置" size="small">
+    <n-card title="并发配置" size="small" :style="detailCardStyle">
       <div class="grid gap-4 md:grid-cols-3">
         <n-statistic label="AI 并发">{{ status?.config.aiSummaryConcurrency ?? '--' }}</n-statistic>
         <n-statistic label="AI RPM 限制">{{ status?.config.aiRpmLimit ?? '--' }}</n-statistic>

@@ -6,9 +6,15 @@ import {
   updateProject,
   deleteProject,
   listProjectLanguages,
+  triggerProjectSummary,
   type ProjectListQuery,
 } from '../api/projects'
-import type { ProjectSummary, ProjectUpdatePayload } from '../types/project'
+import type {
+  ProjectSummary,
+  ProjectUpdatePayload,
+  ProjectAiSummaryOptions,
+  ProjectAiSummaryResult,
+} from '../types/project'
 import type { PaginatedResponse } from '../api/types'
 import { useMessage } from '../utils/feedback'
 
@@ -103,6 +109,63 @@ export function useProjectDeleteMutation() {
     },
     onError: (error) => {
       const msg = (error as Error | undefined)?.message ?? '删除失败'
+      message.error(msg)
+    },
+  })
+}
+
+interface ProjectSummaryTriggerVariables {
+  id: string
+  options?: ProjectAiSummaryOptions
+}
+
+export function useProjectSummaryMutation() {
+  const queryClient = useQueryClient()
+  const message = useMessage()
+
+  return useMutation<ProjectAiSummaryResult, unknown, ProjectSummaryTriggerVariables>({
+    mutationFn: ({ id, options }) => triggerProjectSummary(id, options),
+    onSuccess: (result, variables) => {
+      message.success('AI 摘要已生成')
+
+      queryClient.setQueryData<ProjectSummary | undefined>(
+        ['project-detail', variables.id],
+        (existing) => {
+          if (!existing) return existing
+          const next: ProjectSummary = { ...existing }
+          if (result.summaryShort !== undefined) {
+            next.summaryShort = result.summaryShort ?? null
+          }
+          if (result.summaryLong !== undefined) {
+            next.summaryLong = result.summaryLong ?? null
+          }
+          return next
+        }
+      )
+
+      queryClient.setQueriesData<PaginatedResponse<ProjectSummary[]> | undefined>(
+        { queryKey: ['projects'] },
+        (cached) => {
+          if (!cached) return cached
+          return {
+            ...cached,
+            data: cached.data.map((entry) => {
+              if (entry.id !== variables.id) return entry
+              const next: ProjectSummary = { ...entry }
+              if (result.summaryShort !== undefined) {
+                next.summaryShort = result.summaryShort ?? null
+              }
+              if (result.summaryLong !== undefined) {
+                next.summaryLong = result.summaryLong ?? null
+              }
+              return next
+            }),
+          }
+        }
+      )
+    },
+    onError: (error) => {
+      const msg = (error as Error | undefined)?.message ?? '触发 AI 摘要失败'
       message.error(msg)
     },
   })

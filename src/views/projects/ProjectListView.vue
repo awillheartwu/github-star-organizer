@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { computed, reactive, watch } from 'vue'
+import { computed, onBeforeUnmount, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   NButton,
@@ -17,6 +17,7 @@ import FilterBar from '../../components/common/FilterBar.vue'
 import TagSelector from '../../components/common/TagSelector.vue'
 import ProjectCard from '../../components/projects/ProjectCard.vue'
 import type { ProjectListQuery } from '../../api/projects'
+import type { TagListQuery } from '../../api/tags'
 import type { TagListItem } from '../../types/tag'
 import { useProjectsQuery, useProjectLanguagesQuery } from '../../queries/projects'
 import { useTagListQuery } from '../../queries/tags'
@@ -237,11 +238,24 @@ const projectListParams = computed<ProjectListQuery>(() => ({
 const projectsQuery = useProjectsQuery(projectListParams)
 const projectLanguagesQuery = useProjectLanguagesQuery()
 
-const tagsQuery = useTagListQuery(computed(() => ({ page: 1, pageSize: 100 })))
+const tagQueryFilters = reactive<TagListQuery>({ page: 1, pageSize: 20 })
+let tagSearchTimer: ReturnType<typeof setTimeout> | null = null
 
-const tagOptions = computed(() =>
-  (tagsQuery.data.value?.data ?? []).map((tag: TagListItem) => ({ label: tag.name, value: tag.name }))
-)
+const tagsQuery = useTagListQuery(computed(() => ({ ...tagQueryFilters })))
+
+const tagOptions = computed(() => {
+  const fetched = (tagsQuery.data.value?.data ?? []) as TagListItem[]
+  const optionMap = new Map<string, string>()
+  for (const tag of fetched) {
+    optionMap.set(tag.name, tag.name)
+  }
+  for (const name of filters.tagNames) {
+    if (!optionMap.has(name)) {
+      optionMap.set(name, name)
+    }
+  }
+  return Array.from(optionMap.entries()).map(([value, label]) => ({ label, value }))
+})
 
 const languageOptions = computed(() => {
   const languages = new Set(projectLanguagesQuery.data.value ?? [])
@@ -315,9 +329,30 @@ function handlePageSizeChange(pageSize: number) {
   filters.page = 1
 }
 
-const projects = computed(() => projectsQuery.data.value)
+const CONTROL_CHAR_PATTERN = /[\u0000-\u001f\u007f]/g
+
+const projects = computed(() => {
+  const raw = projectsQuery.data.value
+  if (typeof raw === 'string') {
+    try {
+      return JSON.parse(raw)
+    } catch (error) {
+      try {
+        const sanitized = (raw as string).replace(CONTROL_CHAR_PATTERN, ' ')
+        return JSON.parse(sanitized)
+      } catch (innerError) {
+        console.error('无法解析 projects 响应', error, innerError)
+        return undefined
+      }
+    }
+  }
+  return raw
+})
+const projectItems = computed(() => projects.value?.data ?? [])
+const hasLoaded = computed(() => projects.value !== undefined)
 const isFetching = computed(() => projectsQuery.isFetching.value)
-const isEmpty = computed(() => !projects.value || projects.value.data.length === 0)
+const isEmpty = computed(() => hasLoaded.value && projectItems.value.length === 0)
+
 const totalItems = computed(() => projects.value?.total ?? 0)
 
 watch(
@@ -330,6 +365,25 @@ watch(
   },
   { immediate: true }
 )
+
+function handleTagSearch(value: string) {
+  if (tagSearchTimer) {
+    clearTimeout(tagSearchTimer)
+  }
+  tagSearchTimer = setTimeout(() => {
+    const keyword = value.trim()
+    tagQueryFilters.keyword = keyword ? keyword : undefined
+    tagQueryFilters.pageSize = keyword ? 100 : 20
+    tagQueryFilters.page = 1
+  }, 300)
+}
+
+onBeforeUnmount(() => {
+  if (tagSearchTimer) {
+    clearTimeout(tagSearchTimer)
+    tagSearchTimer = null
+  }
+})
 </script>
 
 <template>
@@ -340,33 +394,17 @@ watch(
           <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <div class="rounded-xl border border-slate-200 bg-slate-50/80 p-4 shadow-inner">
               <div class="mb-2 text-xs font-semibold tracking-wide text-slate-500">关键词</div>
-              <n-input
-                v-model:value="filters.keyword"
-                clearable
-                placeholder="输入名称、描述或关键字"
-              />
+              <n-input v-model:value="filters.keyword" clearable placeholder="输入名称、描述或关键字" />
             </div>
             <div class="rounded-xl border border-slate-200 bg-slate-50/80 p-4 shadow-inner">
               <div class="mb-2 text-xs font-semibold tracking-wide text-slate-500">主要语言</div>
-              <n-select
-                v-model:value="filters.language"
-                :options="languageOptions"
-                :loading="projectLanguagesQuery.isLoading.value"
-                clearable
-                placeholder="选择主要语言"
-              />
+              <n-select v-model:value="filters.language" :options="languageOptions"
+                :loading="projectLanguagesQuery.isLoading.value" clearable placeholder="选择主要语言" />
             </div>
             <div class="rounded-xl border border-slate-200 bg-slate-50/80 p-4 shadow-inner">
               <div class="mb-2 text-xs font-semibold tracking-wide text-slate-500">多语言筛选</div>
-              <n-select
-                v-model:value="filters.languages"
-                multiple
-                filterable
-                max-tag-count="responsive"
-                :options="languageOptions"
-                :loading="projectLanguagesQuery.isLoading.value"
-                placeholder="选择需要包含的语言"
-              />
+              <n-select v-model:value="filters.languages" multiple filterable max-tag-count="responsive"
+                :options="languageOptions" :loading="projectLanguagesQuery.isLoading.value" placeholder="选择需要包含的语言" />
             </div>
             <div class="rounded-xl border border-slate-200 bg-slate-50/80 p-4 shadow-inner">
               <div class="mb-2 text-xs font-semibold tracking-wide text-slate-500">排序方式</div>
@@ -374,12 +412,8 @@ watch(
             </div>
             <div class="rounded-xl border border-slate-200 bg-slate-50/80 p-4 shadow-inner md:col-span-2 xl:col-span-1">
               <div class="mb-2 text-xs font-semibold tracking-wide text-slate-500">标签</div>
-              <TagSelector
-                v-model="filters.tagNames"
-                class="w-full"
-                :options="tagOptions"
-                :loading="tagsQuery.isLoading.value"
-              />
+              <TagSelector v-model="filters.tagNames" class="w-full" :options="tagOptions"
+                :loading="tagsQuery.isFetching.value" remote @search="handleTagSearch" />
             </div>
             <div class="rounded-xl border border-slate-200 bg-slate-50/80 p-4 shadow-inner md:col-span-2 xl:col-span-1">
               <div class="mb-2 text-xs font-semibold tracking-wide text-slate-500">快捷选项</div>
@@ -394,7 +428,7 @@ watch(
                 </label>
                 <label class="flex items-center gap-2">
                   <n-switch v-model:value="filters.archived" size="small" />
-                  <span>包含归档</span>
+                  <span>仅归档</span>
                 </label>
               </div>
             </div>
@@ -403,43 +437,23 @@ watch(
             <div class="rounded-xl border border-slate-200 bg-slate-50/80 p-4 shadow-inner">
               <div class="mb-3 text-xs font-semibold tracking-wide text-slate-500">仓库指标</div>
               <div class="grid gap-3 sm:grid-cols-2">
-                <n-input-number
-                  v-model:value="filters.starsMin"
-                  class="w-full"
-                  :min="0"
-                  :clearable="true"
-                  placeholder="输入数量"
-                >
+                <n-input-number v-model:value="filters.starsMin" class="w-full" :min="0" :clearable="true"
+                  placeholder="输入数量">
                   <template #prefix>星标</template>
                   <template #suffix>以上</template>
                 </n-input-number>
-                <n-input-number
-                  v-model:value="filters.starsMax"
-                  class="w-full"
-                  :min="0"
-                  :clearable="true"
-                  placeholder="输入数量"
-                >
+                <n-input-number v-model:value="filters.starsMax" class="w-full" :min="0" :clearable="true"
+                  placeholder="输入数量">
                   <template #prefix>星标</template>
                   <template #suffix>以下</template>
                 </n-input-number>
-                <n-input-number
-                  v-model:value="filters.forksMin"
-                  class="w-full"
-                  :min="0"
-                  :clearable="true"
-                  placeholder="输入数量"
-                >
+                <n-input-number v-model:value="filters.forksMin" class="w-full" :min="0" :clearable="true"
+                  placeholder="输入数量">
                   <template #prefix>分叉</template>
                   <template #suffix>以上</template>
                 </n-input-number>
-                <n-input-number
-                  v-model:value="filters.forksMax"
-                  class="w-full"
-                  :min="0"
-                  :clearable="true"
-                  placeholder="输入数量"
-                >
+                <n-input-number v-model:value="filters.forksMax" class="w-full" :min="0" :clearable="true"
+                  placeholder="输入数量">
                   <template #prefix>分叉</template>
                   <template #suffix>以下</template>
                 </n-input-number>
@@ -450,36 +464,18 @@ watch(
               <div class="flex flex-col gap-3">
                 <div class="flex flex-wrap items-center gap-3">
                   <span class="min-w-[72px] text-xs font-semibold tracking-wide text-slate-500">创建时间</span>
-                  <n-date-picker
-                    class="flex-1 min-w-[220px]"
-                    type="datetimerange"
-                    clearable
-                    :value="createdAtValue"
-                    @update:value="updateCreatedAtRange"
-                    placeholder="选择创建时间区间"
-                  />
+                  <n-date-picker class="flex-1 min-w-[220px]" type="datetimerange" clearable :value="createdAtValue"
+                    @update:value="updateCreatedAtRange" placeholder="选择创建时间区间" />
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
                   <span class="min-w-[72px] text-xs font-semibold tracking-wide text-slate-500">更新时间</span>
-                  <n-date-picker
-                    class="flex-1 min-w-[220px]"
-                    type="datetimerange"
-                    clearable
-                    :value="updatedAtValue"
-                    @update:value="updateUpdatedAtRange"
-                    placeholder="选择更新时间区间"
-                  />
+                  <n-date-picker class="flex-1 min-w-[220px]" type="datetimerange" clearable :value="updatedAtValue"
+                    @update:value="updateUpdatedAtRange" placeholder="选择更新时间区间" />
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
                   <span class="min-w-[72px] text-xs font-semibold tracking-wide text-slate-500">最近提交时间</span>
-                  <n-date-picker
-                    class="flex-1 min-w-[220px]"
-                    type="datetimerange"
-                    clearable
-                    :value="lastCommitValue"
-                    @update:value="updateLastCommitRange"
-                    placeholder="选择最近提交时间区间"
-                  />
+                  <n-date-picker class="flex-1 min-w-[220px]" type="datetimerange" clearable :value="lastCommitValue"
+                    @update:value="updateLastCommitRange" placeholder="选择最近提交时间区间" />
                 </div>
               </div>
             </div>
@@ -498,19 +494,13 @@ watch(
 
     <n-spin :show="isFetching">
       <div v-if="!isEmpty" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <ProjectCard v-for="project in projects?.data ?? []" :key="project.id" :project="project" />
+        <ProjectCard v-for="project in projectItems" :key="project.id" :project="project" />
       </div>
     </n-spin>
 
     <div class="flex items-center justify-end">
-      <n-pagination
-        v-model:page="filters.page"
-        :item-count="projects?.total ?? 0"
-        :page-size="filters.pageSize"
-        show-size-picker
-        :page-sizes="[10, 20, 50, 100]"
-        @update:page-size="handlePageSizeChange"
-      />
+      <n-pagination v-model:page="filters.page" :item-count="totalItems" :page-size="filters.pageSize" show-size-picker
+        :page-sizes="[10, 20, 50, 100]" @update:page-size="handlePageSizeChange" />
     </div>
   </div>
 </template>

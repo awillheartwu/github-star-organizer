@@ -29,8 +29,10 @@ import {
   useProjectDetailQuery,
   useProjectUpdateMutation,
   useProjectDeleteMutation,
+  useProjectSummaryMutation,
 } from '../../queries/projects'
 import { useTagListQuery } from '../../queries/tags'
+import { DETAIL_CARD_STYLE } from '../../constants/ui'
 
 const route = useRoute()
 const router = useRouter()
@@ -46,8 +48,10 @@ const isAdmin = computed(() => auth.user?.role === 'ADMIN')
 
 const projectMutation = useProjectUpdateMutation()
 const projectDelete = useProjectDeleteMutation()
-const pendingAction = ref<'favorite' | 'pinned' | null>(null)
+const aiSummaryMutation = useProjectSummaryMutation()
+const pendingAction = ref<'favorite' | 'pinned' | 'summary' | null>(null)
 const showEditDrawer = ref(false)
+const detailCardStyle = DETAIL_CARD_STYLE
 
 const editForm = reactive({
   notes: '',
@@ -162,6 +166,16 @@ async function togglePinned() {
   }
 }
 
+async function triggerAiSummary() {
+  if (!project.value || aiSummaryMutation.isPending.value) return
+  pendingAction.value = 'summary'
+  try {
+    await aiSummaryMutation.mutateAsync({ id: project.value.id })
+  } finally {
+    pendingAction.value = null
+  }
+}
+
 async function submitEdit() {
   if (!project.value || projectMutation.isPending.value) return
   const sanitizedNotes = editForm.notes.trim()
@@ -226,7 +240,7 @@ function confirmDelete() {
       加载项目失败，请稍后重试。
     </n-alert>
 
-    <n-card v-if="project" size="large" :bordered="false" class="shadow-sm">
+    <n-card v-if="project" size="large" :bordered="false" class="shadow-sm" :style="detailCardStyle">
       <div class="flex flex-col gap-4">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div class="flex flex-col gap-2">
@@ -268,7 +282,15 @@ function confirmDelete() {
               >
                 编辑项目
               </n-button>
-              <n-button v-if="isAdmin" tertiary size="small">触发 AI 摘要</n-button>
+              <n-button
+                v-if="isAdmin"
+                tertiary
+                size="small"
+                :loading="pendingAction === 'summary' && aiSummaryMutation.isPending.value"
+                @click="triggerAiSummary"
+              >
+                触发 AI 摘要
+              </n-button>
             </n-space>
           </div>
           <div class="flex flex-col gap-2 text-right text-sm text-slate-500">
@@ -315,7 +337,7 @@ function confirmDelete() {
 
     <n-grid cols="1 640:2" x-gap="16" y-gap="16">
       <n-grid-item>
-        <n-card title="项目信息" size="small">
+        <n-card title="项目信息" size="small" :style="detailCardStyle">
           <n-descriptions :column="1" size="small">
             <n-descriptions-item label="创建时间">{{ formatDate(project?.createdAt) }}</n-descriptions-item>
             <n-descriptions-item label="更新时间">{{ formatDate(project?.updatedAt) }}</n-descriptions-item>
@@ -325,7 +347,7 @@ function confirmDelete() {
         </n-card>
       </n-grid-item>
       <n-grid-item>
-        <n-card title="调试信息" size="small">
+        <n-card title="调试信息" size="small" :style="detailCardStyle">
           <n-descriptions :column="1" size="small">
             <n-descriptions-item label="项目 ID">{{ project?.id }}</n-descriptions-item>
             <n-descriptions-item label="GitHub ID">{{ project?.githubId }}</n-descriptions-item>
@@ -334,7 +356,7 @@ function confirmDelete() {
         </n-card>
       </n-grid-item>
       <n-grid-item>
-        <n-card title="状态与配置" size="small">
+        <n-card title="状态与配置" size="small" :style="detailCardStyle">
           <n-descriptions :column="1" size="small">
             <n-descriptions-item label="收藏">{{ statusOverview.favorite }}</n-descriptions-item>
             <n-descriptions-item label="置顶">{{ statusOverview.pinned }}</n-descriptions-item>

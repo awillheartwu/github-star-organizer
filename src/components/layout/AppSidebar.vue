@@ -16,6 +16,14 @@ const adminMenuItems = computed(() =>
   adminNavigation.filter((item) => !item.roles || item.roles.includes(user.value?.role ?? 'USER'))
 )
 
+const accountNavigationItem = computed(() =>
+  primaryNavigation.find((item) => item.key === 'account-profile')
+)
+
+const workspaceNavigationItems = computed(() =>
+  primaryNavigation.filter((item) => item.key !== 'account-profile')
+)
+
 const navigationMap = computed(() => {
   const map = new Map<string, { routeName: string }>()
   for (const item of primaryNavigation) {
@@ -29,14 +37,29 @@ const navigationMap = computed(() => {
 
 const menuOptions = computed<MenuOption[]>(() => {
   const options: MenuOption[] = []
-  options.push({
-    key: 'group-main',
-    label: '工作区',
-    children: primaryNavigation.map((item) => ({
-      key: item.key,
-      label: item.label,
-    })),
-  })
+  if (workspaceNavigationItems.value.length) {
+    options.push({
+      key: 'group-main',
+      label: '工作区',
+      children: workspaceNavigationItems.value.map((item) => ({
+        key: item.key,
+        label: item.label,
+      })),
+    })
+  }
+
+  if (accountNavigationItem.value) {
+    options.push({
+      key: 'group-account',
+      label: '账户信息',
+      children: [
+        {
+          key: accountNavigationItem.value.key,
+          label: accountNavigationItem.value.label,
+        },
+      ],
+    })
+  }
 
   if (adminMenuItems.value.length) {
     options.push({
@@ -53,7 +76,13 @@ const menuOptions = computed<MenuOption[]>(() => {
 })
 
 const availableGroupKeys = computed(() => {
-  const keys: string[] = ['group-main']
+  const keys: string[] = []
+  if (workspaceNavigationItems.value.length) {
+    keys.push('group-main')
+  }
+  if (accountNavigationItem.value) {
+    keys.push('group-account')
+  }
   if (adminMenuItems.value.length) {
     keys.push('group-admin')
   }

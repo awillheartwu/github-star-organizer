@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { NAlert, NButton, NCard, NCode } from 'naive-ui'
 import { getAiBatch } from '../../api/admin'
 import { formatDate } from '../../utils/format'
+import { DETAIL_CARD_STYLE } from '../../constants/ui'
 
 const route = useRoute()
 const router = useRouter()
@@ -26,6 +27,8 @@ const statsPretty = computed(() => {
     return batch.value.statsJson
   }
 })
+
+const detailCardStyle = DETAIL_CARD_STYLE
 </script>
 
 <template>
@@ -42,7 +45,7 @@ const statsPretty = computed(() => {
       无法加载批次详情，请稍后重试。
     </n-alert>
 
-    <n-card v-if="batch" size="large">
+    <n-card v-if="batch" size="large" :style="detailCardStyle">
       <dl class="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
         <div>
           <dt class="text-xs uppercase text-slate-400">最后运行</dt>

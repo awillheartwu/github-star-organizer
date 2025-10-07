@@ -27,6 +27,25 @@ export interface ProjectSummary {
   videoLinks: string[]
 }
 
+export interface ProjectAiSummaryOptions {
+  style?: 'short' | 'long' | 'both'
+  lang?: 'zh' | 'en'
+  model?: string
+  temperature?: number
+  createTags?: boolean
+  includeReadme?: boolean
+  readmeMaxChars?: number
+}
+
+export interface ProjectAiSummaryResult {
+  summaryShort?: string
+  summaryLong?: string
+  model?: string
+  lang?: string
+  tagsCreated: string[]
+  tagsLinked: string[]
+}
+
 export interface PaginatedProjects {
   data: ProjectSummary[]
   page: number

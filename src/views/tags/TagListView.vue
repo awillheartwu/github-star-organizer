@@ -274,7 +274,12 @@ function handleDelete(row: TagListItem) {
       />
     </div>
 
-    <n-modal v-model:show="createModalVisible" preset="dialog" title="新建标签">
+    <n-modal
+      v-model:show="createModalVisible"
+      preset="dialog"
+      title="新建标签"
+      :style="{ borderRadius: '16px' }"
+    >
       <n-form label-placement="top">
         <n-form-item label="名称">
           <n-input v-model:value="createForm.name" placeholder="标签名称" />
@@ -293,7 +298,12 @@ function handleDelete(row: TagListItem) {
       </template>
     </n-modal>
 
-    <n-modal v-model:show="editModalVisible" preset="dialog" title="编辑标签">
+    <n-modal
+      v-model:show="editModalVisible"
+      preset="dialog"
+      title="编辑标签"
+      :style="{ borderRadius: '16px' }"
+    >
       <n-form label-placement="top">
         <n-form-item label="名称">
           <n-input v-model:value="editForm.name" placeholder="标签名称" />

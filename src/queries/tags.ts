@@ -1,6 +1,14 @@
 import { computed, type ComputedRef } from 'vue'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
-import { listTags, getTag, createTag, updateTag, deleteTag, type TagListQuery } from '../api/tags'
+import {
+  listTags,
+  getTag,
+  createTag,
+  updateTag,
+  deleteTag,
+  type TagListQuery,
+  type TagDetailQuery,
+} from '../api/tags'
 import type { TagPayload } from '../types/tag'
 import { useMessage } from '../utils/feedback'
 
@@ -12,11 +20,20 @@ export function useTagListQuery(filters: ComputedRef<TagListQuery>) {
   })
 }
 
-export function useTagDetailQuery(tagId: ComputedRef<string | undefined>) {
+export function useTagDetailQuery(tagParams: ComputedRef<{ id?: string } & TagDetailQuery>) {
   return useQuery({
-    queryKey: computed(() => ['tag-detail', tagId.value]),
-    enabled: computed(() => Boolean(tagId.value)),
-    queryFn: () => getTag(tagId.value as string),
+    queryKey: computed(() => [
+      'tag-detail',
+      tagParams.value.id,
+      tagParams.value.projectsPage ?? 1,
+      tagParams.value.projectsPageSize ?? 20,
+    ]),
+    enabled: computed(() => Boolean(tagParams.value.id)),
+    queryFn: () =>
+      getTag(tagParams.value.id as string, {
+        projectsPage: tagParams.value.projectsPage,
+        projectsPageSize: tagParams.value.projectsPageSize,
+      }),
   })
 }
 

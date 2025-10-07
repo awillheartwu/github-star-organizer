@@ -9,6 +9,7 @@ export interface AuthInterceptorContext {
 
 interface RetriableRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean
+  suppressGlobalMessage?: boolean
 }
 
 export const api = axios.create({
@@ -43,6 +44,7 @@ export function setupApiInterceptors(ctx: AuthInterceptorContext) {
       }
 
       const retriableConfig = config as RetriableRequestConfig
+      const suppressMessage = retriableConfig.suppressGlobalMessage === true
       const isRefreshRequest = typeof config.url === 'string' && config.url.includes('/auth/refresh')
 
       if (response.status === 401) {
@@ -64,7 +66,7 @@ export function setupApiInterceptors(ctx: AuthInterceptorContext) {
         await ctx.onRefreshFailed?.()
       }
 
-      if (response.status !== 400 && response.status !== 401) {
+      if (!suppressMessage && response.status !== 400 && response.status !== 401) {
         const msg =
           (response.data as { message?: string } | undefined)?.message || error.message || '请求失败'
         message.error(msg)

@@ -58,10 +58,16 @@ async function togglePinned() {
 function goToDetail() {
   void router.push({ name: 'project-detail', params: { id: props.project.id } })
 }
+
+function handleCardClick(event: MouseEvent) {
+  const target = event.target as HTMLElement | null
+  if (target?.closest('button, a')) return
+  goToDetail()
+}
 </script>
 
 <template>
-  <n-card size="small" class="project-card">
+  <n-card size="small" class="project-card" hoverable @click="handleCardClick">
     <div class="flex flex-col gap-3">
       <div class="flex flex-col gap-1">
         <div class="flex flex-wrap items-start justify-between gap-2">
@@ -120,5 +126,6 @@ function goToDetail() {
 .project-card {
   border-radius: 16px;
   border: 1px solid rgb(226 232 240 / 1);
+  cursor: pointer;
 }
 </style>
