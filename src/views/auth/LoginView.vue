@@ -29,7 +29,7 @@ async function handleSubmit() {
   if (!formRef.value) return
   try {
     await formRef.value.validate()
-  } catch (error) {
+  } catch (_error) {
     return
   }
 
@@ -41,7 +41,7 @@ async function handleSubmit() {
     } else {
       await router.replace({ name: 'projects' })
     }
-  } catch (error) {
+  } catch (_error) {
     // 提示已由 store 处理
   }
 }
@@ -53,9 +53,20 @@ async function handleSubmit() {
       <h1 class="text-2xl font-semibold text-slate-900">登录</h1>
       <p class="text-sm text-slate-500">访问 GitHub Star Organizer 管理面板</p>
     </div>
-    <n-form ref="formRef" :model="formModel" :rules="rules" size="large" class="flex flex-col gap-4">
+    <n-form
+      ref="formRef"
+      :model="formModel"
+      :rules="rules"
+      size="large"
+      class="flex flex-col gap-4"
+    >
       <n-form-item path="email" label="邮箱">
-        <n-input v-model:value="formModel.email" placeholder="you@example.com" type="text" clearable />
+        <n-input
+          v-model:value="formModel.email"
+          placeholder="you@example.com"
+          type="text"
+          clearable
+        />
       </n-form-item>
       <n-form-item path="password" label="密码">
         <n-input

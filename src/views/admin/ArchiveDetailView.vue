@@ -23,7 +23,7 @@ const snapshotPretty = computed(() => {
   if (!archived.value?.snapshot) return null
   try {
     return JSON.stringify(archived.value.snapshot, null, 2)
-  } catch (error) {
+  } catch (_error) {
     return String(archived.value.snapshot)
   }
 })
@@ -62,7 +62,12 @@ const detailCardStyle = DETAIL_CARD_STYLE
         <div class="md:col-span-2">
           <dt class="text-xs uppercase text-slate-400">快照数据</dt>
           <dd>
-            <n-code v-if="snapshotPretty" :code="snapshotPretty" language="json" show-line-numbers />
+            <n-code
+              v-if="snapshotPretty"
+              :code="snapshotPretty"
+              language="json"
+              show-line-numbers
+            />
             <span v-else class="text-slate-500">No Data</span>
           </dd>
         </div>

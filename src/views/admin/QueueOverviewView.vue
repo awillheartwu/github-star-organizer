@@ -33,14 +33,19 @@ const detailCardStyle = DETAIL_CARD_STYLE
         <h2 class="text-lg font-semibold text-slate-900">队列概览</h2>
         <p class="text-sm text-slate-500">同步、AI 摘要与维护任务的实时状态</p>
       </div>
-      <n-button type="primary" secondary :loading="queuesQuery.isFetching.value" @click="queuesQuery.refetch()">
+      <n-button
+        type="primary"
+        secondary
+        :loading="queuesQuery.isFetching.value"
+        @click="queuesQuery.refetch()"
+      >
         手动刷新
       </n-button>
     </div>
 
     <template v-if="hasQueues">
       <n-grid cols="1 640:3" x-gap="16" y-gap="16">
-        <n-grid-item v-for="([name, queue]) in queueEntries" :key="name">
+        <n-grid-item v-for="[name, queue] in queueEntries" :key="name">
           <n-card :title="name" size="small" :style="detailCardStyle">
             <div class="grid grid-cols-2 gap-3 text-sm text-slate-600">
               <div>

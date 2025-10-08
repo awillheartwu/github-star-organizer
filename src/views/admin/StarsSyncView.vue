@@ -145,7 +145,9 @@ const detailCardStyle = DETAIL_CARD_STYLE
           </div>
         </dl>
       </template>
-      <n-alert v-else-if="syncStateQuery.isLoading.value" type="info" show-icon>正在加载同步状态…</n-alert>
+      <n-alert v-else-if="syncStateQuery.isLoading.value" type="info" show-icon
+        >正在加载同步状态…</n-alert
+      >
       <n-alert v-else type="default" show-icon>No Data</n-alert>
     </n-card>
   </div>

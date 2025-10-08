@@ -20,7 +20,11 @@ const filters = reactive({ ...defaultFilters })
 let syncing = false
 
 const batchQuery = useQuery({
-  queryKey: computed(() => ['admin', 'ai-batches', { page: filters.page, pageSize: filters.pageSize }]),
+  queryKey: computed(() => [
+    'admin',
+    'ai-batches',
+    { page: filters.page, pageSize: filters.pageSize },
+  ]),
   queryFn: async () => listAiBatches({ page: filters.page, pageSize: filters.pageSize }),
   placeholderData: keepPreviousData,
 })

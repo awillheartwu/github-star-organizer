@@ -121,11 +121,11 @@ function handleUpdateValue(key: string) {
     </div>
     <div class="flex-1 overflow-y-auto px-2 py-4">
       <n-menu
+        v-model:expanded-keys="expandedKeys"
         :value="activeKey"
         :options="menuOptions"
         :collapsed-width="0"
         :indent="18"
-        v-model:expanded-keys="expandedKeys"
         @update:value="handleUpdateValue"
       />
     </div>

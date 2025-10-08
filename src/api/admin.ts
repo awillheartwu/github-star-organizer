@@ -105,15 +105,11 @@ export async function listAiBatches(query: AiBatchQuery) {
 }
 
 export async function getAiBatch(id: string) {
-  const { data } = await api.get<{ message: string; data: AiBatchItem }>(
-    `/admin/ai/batches/${id}`
-  )
+  const { data } = await api.get<{ message: string; data: AiBatchItem }>(`/admin/ai/batches/${id}`)
   return data.data
 }
 
 export async function runMaintenance() {
-  const { data } = await api.post<{ message: string; jobId: string }>(
-    '/admin/maintenance/run'
-  )
+  const { data } = await api.post<{ message: string; jobId: string }>('/admin/maintenance/run')
   return data
 }

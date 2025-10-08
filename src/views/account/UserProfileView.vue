@@ -108,8 +108,12 @@ async function handleChangePassword() {
           <n-descriptions-item label="名称">{{ user.name ?? '未设置' }}</n-descriptions-item>
           <n-descriptions-item label="邮箱">{{ user.email ?? '未设置' }}</n-descriptions-item>
           <n-descriptions-item label="用户 ID">{{ user.sub }}</n-descriptions-item>
-          <n-descriptions-item label="创建时间">{{ formatDate(user.createdAt) }}</n-descriptions-item>
-          <n-descriptions-item label="最近更新">{{ formatDate(user.updatedAt) }}</n-descriptions-item>
+          <n-descriptions-item label="创建时间">{{
+            formatDate(user.createdAt)
+          }}</n-descriptions-item>
+          <n-descriptions-item label="最近更新">{{
+            formatDate(user.updatedAt)
+          }}</n-descriptions-item>
         </n-descriptions>
       </template>
       <template v-else #default>
@@ -151,9 +155,13 @@ async function handleChangePassword() {
           </n-form-item>
         </n-form>
         <n-space>
-          <n-button type="primary" :loading="changing" @click="handleChangePassword">确认修改</n-button>
+          <n-button type="primary" :loading="changing" @click="handleChangePassword"
+            >确认修改</n-button
+          >
           <n-button tertiary :disabled="changing" @click="resetChangeForm">清空</n-button>
-          <n-button secondary @click="refreshProfile" :loading="refreshing">重新拉取账号信息</n-button>
+          <n-button secondary :loading="refreshing" @click="refreshProfile"
+            >重新拉取账号信息</n-button
+          >
         </n-space>
       </div>
     </n-card>

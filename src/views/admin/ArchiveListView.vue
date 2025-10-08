@@ -27,7 +27,11 @@ const archivedQuery = useQuery({
     { page: filters.page, pageSize: filters.pageSize, reason: filters.reason },
   ]),
   queryFn: async () =>
-    listArchivedProjects({ page: filters.page, pageSize: filters.pageSize, reason: filters.reason || undefined }),
+    listArchivedProjects({
+      page: filters.page,
+      pageSize: filters.pageSize,
+      reason: filters.reason || undefined,
+    }),
   placeholderData: keepPreviousData,
 })
 
@@ -40,7 +44,10 @@ watch(
       filters.pageSize = route.query.pageSize
         ? Math.max(Number(route.query.pageSize) || defaultFilters.pageSize, 1)
         : defaultFilters.pageSize
-      filters.reason = route.query.reason === 'manual' || route.query.reason === 'unstarred' ? route.query.reason : ''
+      filters.reason =
+        route.query.reason === 'manual' || route.query.reason === 'unstarred'
+          ? route.query.reason
+          : ''
     } finally {
       syncing = false
     }
@@ -121,7 +128,10 @@ function handlePageSizeChange(pageSize: number) {
       <div class="flex items-center gap-2 text-sm text-slate-600">
         <label class="flex items-center gap-2">
           <span>原因筛选</span>
-          <select v-model="filters.reason" class="rounded-md border border-slate-300 px-3 py-1 text-sm">
+          <select
+            v-model="filters.reason"
+            class="rounded-md border border-slate-300 px-3 py-1 text-sm"
+          >
             <option value="">全部</option>
             <option value="manual">手动</option>
             <option value="unstarred">取消 Star</option>

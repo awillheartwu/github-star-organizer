@@ -40,6 +40,13 @@ const { updateMutation } = useTagMutations()
 const tag = computed(() => tagQuery.data.value)
 const detailCardStyle = DETAIL_CARD_STYLE
 const isLoadingProjects = computed(() => tagQuery.isFetching.value)
+const showProjectsPagination = computed(() => {
+  const current = tag.value
+  if (!current) return false
+  const total = current.projectsTotal ?? 0
+  const size = current.projectsPageSize ?? 0
+  return total > size && size > 0
+})
 
 const editModalVisible = ref(false)
 const editForm = reactive({
@@ -172,7 +179,9 @@ async function submitEdit() {
           <n-list-item v-for="project in tag.projects" :key="project.id">
             <div class="flex flex-col">
               <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-slate-900">{{ project.fullName ?? project.name }}</span>
+                <span class="text-sm font-medium text-slate-900">{{
+                  project.fullName ?? project.name
+                }}</span>
                 <n-button
                   size="tiny"
                   quaternary
@@ -181,7 +190,13 @@ async function submitEdit() {
                   查看详情
                 </n-button>
               </div>
-              <a v-if="project.url" :href="project.url" target="_blank" rel="noreferrer" class="text-xs text-primary-500">
+              <a
+                v-if="project.url"
+                :href="project.url"
+                target="_blank"
+                rel="noreferrer"
+                class="text-xs text-primary-500"
+              >
                 {{ project.url }}
               </a>
             </div>
@@ -191,14 +206,11 @@ async function submitEdit() {
           <span class="text-sm text-slate-500">暂无相关项目</span>
         </n-list-item>
       </n-list>
-      <div
-        v-if="tag && tag.projectsTotal > tag.projectsPageSize"
-        class="mt-4 flex justify-end"
-      >
+      <div v-if="showProjectsPagination" class="mt-4 flex justify-end">
         <n-pagination
           :page="pagination.page"
           :page-size="pagination.pageSize"
-          :item-count="tag.projectsTotal"
+          :item-count="tag?.projectsTotal ?? 0"
           show-size-picker
           :page-sizes="[10, 20, 30, 50]"
           size="small"

@@ -121,7 +121,7 @@ export const useAuthStore = defineStore('auth', () => {
         scheduleAccessTokenRefresh(accessToken.value)
         await fetchMe()
       }
-    } catch (error) {
+    } catch (_error) {
       clearAuthState()
     } finally {
       ready.value = true
@@ -166,7 +166,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout(options: { silent?: boolean } = {}) {
     try {
       await logoutRequest()
-    } catch (error) {
+    } catch (_error) {
       if (!options.silent) {
         message.error('登出失败，请重试')
       }
@@ -197,6 +197,8 @@ export const useAuthStore = defineStore('auth', () => {
       message.success('注册成功，请使用该账号登录')
       return true
     } catch (error) {
+      const msg = (error as Error | undefined)?.message ?? '注册失败，请稍后再试'
+      message.error(msg)
       throw error
     } finally {
       loading.value = false

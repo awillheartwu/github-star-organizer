@@ -19,11 +19,9 @@ export async function login(payload: LoginPayload) {
 }
 
 export async function register(payload: RegisterPayload) {
-  const { data } = await api.post<{ message: string }>(
-    '/auth/register',
-    payload,
-    { suppressGlobalMessage: true }
-  )
+  const { data } = await api.post<{ message: string }>('/auth/register', payload, {
+    suppressGlobalMessage: true,
+  })
   return data.message
 }
 
@@ -47,7 +45,10 @@ export interface ChangePasswordPayload {
 }
 
 export async function changePassword(payload: ChangePasswordPayload) {
-  const { data } = await api.post<ApiResponse<{ message: string }>>('/auth/change-password', payload)
+  const { data } = await api.post<ApiResponse<{ message: string }>>(
+    '/auth/change-password',
+    payload
+  )
   return data.message
 }
 

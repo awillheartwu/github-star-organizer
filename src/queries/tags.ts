@@ -56,7 +56,8 @@ export function useTagMutations() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: Partial<TagPayload> }) => updateTag(id, payload),
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<TagPayload> }) =>
+      updateTag(id, payload),
     onSuccess: (_, variables) => {
       message.success('标签已更新')
       queryClient.invalidateQueries({ queryKey: ['tags'] })

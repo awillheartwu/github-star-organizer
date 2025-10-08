@@ -20,8 +20,7 @@ export const api = axios.create({
 export function setupApiInterceptors(ctx: AuthInterceptorContext) {
   const message = useMessage()
   api.interceptors.request.use((config) => {
-    const isRefreshRequest =
-      typeof config.url === 'string' && config.url.includes('/auth/refresh')
+    const isRefreshRequest = typeof config.url === 'string' && config.url.includes('/auth/refresh')
     const token = ctx.getAccessToken()
     if (token && !isRefreshRequest) {
       config.headers = config.headers ?? {}
@@ -45,7 +44,8 @@ export function setupApiInterceptors(ctx: AuthInterceptorContext) {
 
       const retriableConfig = config as RetriableRequestConfig
       const suppressMessage = retriableConfig.suppressGlobalMessage === true
-      const isRefreshRequest = typeof config.url === 'string' && config.url.includes('/auth/refresh')
+      const isRefreshRequest =
+        typeof config.url === 'string' && config.url.includes('/auth/refresh')
 
       if (response.status === 401) {
         if (!retriableConfig._retry && !isRefreshRequest) {
@@ -68,7 +68,9 @@ export function setupApiInterceptors(ctx: AuthInterceptorContext) {
 
       if (!suppressMessage && response.status !== 400 && response.status !== 401) {
         const msg =
-          (response.data as { message?: string } | undefined)?.message || error.message || '请求失败'
+          (response.data as { message?: string } | undefined)?.message ||
+          error.message ||
+          '请求失败'
         message.error(msg)
       }
 

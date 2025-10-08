@@ -30,7 +30,7 @@ const CONTROL_CHAR_PATTERN = /[\u0000-\u001f\u007f]/g
 function safeParseJson<T>(input: string): T {
   try {
     return JSON.parse(input) as T
-  } catch (error) {
+  } catch (_error) {
     const sanitized = input.replace(CONTROL_CHAR_PATTERN, ' ')
     return JSON.parse(sanitized) as T
   }
@@ -57,11 +57,14 @@ function normalizeProjectSummary(project: ProjectSummary | string): ProjectSumma
   if (Array.isArray(cleaned.tags)) {
     cleaned.tags = cleaned.tags.map((tag) => ({
       ...tag,
-      name: typeof tag.name === 'string' ? tag.name.replace(CONTROL_CHAR_PATTERN, ' ').trim() : tag.name,
+      name:
+        typeof tag.name === 'string'
+          ? tag.name.replace(CONTROL_CHAR_PATTERN, ' ').trim()
+          : tag.name,
       description:
         typeof tag.description === 'string'
           ? tag.description.replace(CONTROL_CHAR_PATTERN, ' ').trim() || null
-          : tag.description ?? null,
+          : (tag.description ?? null),
     }))
   }
   if (Array.isArray(cleaned.videoLinks)) {
@@ -161,7 +164,9 @@ function buildQueryParams(query: ProjectListQuery) {
 
 export async function listProjects(query: ProjectListQuery) {
   const params = buildQueryParams(query)
-  const response = await api.get<PaginatedResponse<ProjectSummary[]> | string>('/projects', { params })
+  const response = await api.get<PaginatedResponse<ProjectSummary[]> | string>('/projects', {
+    params,
+  })
   const payload = normalizePayload<PaginatedResponse<ProjectSummary[]>>(response.data)
   return {
     ...payload,
@@ -181,7 +186,9 @@ export async function listProjectLanguages() {
 }
 
 export async function getProject(id: string) {
-  const response = await api.get<{ message: string; data: ProjectSummary } | string>(`/projects/${id}`)
+  const response = await api.get<{ message: string; data: ProjectSummary } | string>(
+    `/projects/${id}`
+  )
   const payload = normalizePayload<{ message: string; data: ProjectSummary }>(response.data)
   return normalizeProjectSummary(payload.data)
 }

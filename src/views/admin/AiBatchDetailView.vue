@@ -23,7 +23,7 @@ const statsPretty = computed(() => {
   if (!batch.value?.statsJson) return null
   try {
     return JSON.stringify(JSON.parse(batch.value.statsJson), null, 2)
-  } catch (error) {
+  } catch (_error) {
     return batch.value.statsJson
   }
 })

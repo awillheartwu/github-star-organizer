@@ -94,9 +94,7 @@ const tagOptions = computed(() =>
 )
 const tagSelectorLoading = computed(() => tagQuery.isFetching.value)
 
-const favoriteLabel = computed(() =>
-  project.value?.favorite ? '取消收藏' : '设为收藏'
-)
+const favoriteLabel = computed(() => (project.value?.favorite ? '取消收藏' : '设为收藏'))
 const pinnedLabel = computed(() => (project.value?.pinned ? '取消置顶' : '设为置顶'))
 const statusOverview = computed(() => {
   const target = project.value
@@ -226,7 +224,7 @@ function confirmDelete() {
         await projectDelete.mutateAsync(current.id)
         showEditDrawer.value = false
         await router.push({ name: 'projects' })
-      } catch (error) {
+      } catch (_error) {
         return false
       }
     },
@@ -240,7 +238,13 @@ function confirmDelete() {
       加载项目失败，请稍后重试。
     </n-alert>
 
-    <n-card v-if="project" size="large" :bordered="false" class="shadow-sm" :style="detailCardStyle">
+    <n-card
+      v-if="project"
+      size="large"
+      :bordered="false"
+      class="shadow-sm"
+      :style="detailCardStyle"
+    >
       <div class="flex flex-col gap-4">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div class="flex flex-col gap-2">
@@ -272,7 +276,9 @@ function confirmDelete() {
               >
                 {{ pinnedLabel }}
               </n-button>
-              <n-button tag="a" :href="project.url" target="_blank" tertiary size="small">访问仓库</n-button>
+              <n-button tag="a" :href="project.url" target="_blank" tertiary size="small"
+                >访问仓库</n-button
+              >
               <n-button
                 v-if="isAdmin"
                 tertiary
@@ -302,11 +308,17 @@ function confirmDelete() {
         </div>
 
         <div v-if="project.summaryLong || project.summaryShort" class="grid gap-4 md:grid-cols-2">
-          <div v-if="project.summaryShort" class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
+          <div
+            v-if="project.summaryShort"
+            class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700"
+          >
             <h3 class="mb-2 text-sm font-semibold text-slate-900">短摘要</h3>
             {{ project.summaryShort }}
           </div>
-          <div v-if="project.summaryLong" class="rounded-xl border border-slate-200 bg-white p-4 text-sm leading-relaxed text-slate-700">
+          <div
+            v-if="project.summaryLong"
+            class="rounded-xl border border-slate-200 bg-white p-4 text-sm leading-relaxed text-slate-700"
+          >
             <h3 class="mb-2 text-sm font-semibold text-slate-900">详细摘要</h3>
             {{ project.summaryLong }}
           </div>
@@ -328,7 +340,13 @@ function confirmDelete() {
           <h3 class="text-sm font-semibold text-slate-900">相关视频</h3>
           <ul class="list-disc space-y-1 pl-5 text-sm text-slate-600">
             <li v-for="link in project.videoLinks" :key="link">
-              <a :href="link" target="_blank" rel="noreferrer" class="text-primary-500 hover:underline">{{ link }}</a>
+              <a
+                :href="link"
+                target="_blank"
+                rel="noreferrer"
+                class="text-primary-500 hover:underline"
+                >{{ link }}</a
+              >
             </li>
           </ul>
         </div>
@@ -339,9 +357,15 @@ function confirmDelete() {
       <n-grid-item>
         <n-card title="项目信息" size="small" :style="detailCardStyle">
           <n-descriptions :column="1" size="small">
-            <n-descriptions-item label="创建时间">{{ formatDate(project?.createdAt) }}</n-descriptions-item>
-            <n-descriptions-item label="更新时间">{{ formatDate(project?.updatedAt) }}</n-descriptions-item>
-            <n-descriptions-item label="最后活跃">{{ formatDate(project?.touchedAt) }}</n-descriptions-item>
+            <n-descriptions-item label="创建时间">{{
+              formatDate(project?.createdAt)
+            }}</n-descriptions-item>
+            <n-descriptions-item label="更新时间">{{
+              formatDate(project?.updatedAt)
+            }}</n-descriptions-item>
+            <n-descriptions-item label="最后活跃">{{
+              formatDate(project?.touchedAt)
+            }}</n-descriptions-item>
             <n-descriptions-item label="Score">{{ scoreDisplay }}</n-descriptions-item>
           </n-descriptions>
         </n-card>
@@ -351,7 +375,9 @@ function confirmDelete() {
           <n-descriptions :column="1" size="small">
             <n-descriptions-item label="项目 ID">{{ project?.id }}</n-descriptions-item>
             <n-descriptions-item label="GitHub ID">{{ project?.githubId }}</n-descriptions-item>
-            <n-descriptions-item label="Access Token 角色">{{ auth.user?.role ?? '未知' }}</n-descriptions-item>
+            <n-descriptions-item label="Access Token 角色">{{
+              auth.user?.role ?? '未知'
+            }}</n-descriptions-item>
           </n-descriptions>
         </n-card>
       </n-grid-item>
@@ -373,7 +399,12 @@ function confirmDelete() {
     <n-drawer-content title="编辑项目" closable>
       <n-form label-placement="top" class="flex flex-col gap-4">
         <n-form-item label="备注">
-          <n-input v-model:value="editForm.notes" type="textarea" placeholder="记录你的备注" rows="4" />
+          <n-input
+            v-model:value="editForm.notes"
+            type="textarea"
+            placeholder="记录你的备注"
+            rows="4"
+          />
         </n-form-item>
         <n-form-item label="自定义评分">
           <n-input-number
@@ -411,7 +442,10 @@ function confirmDelete() {
         <n-form-item label="视频链接">
           <n-dynamic-input v-model:value="editForm.videoLinks" :on-create="() => ''">
             <template #default="{ index }">
-              <n-input v-model:value="editForm.videoLinks[index]" placeholder="https://example.com" />
+              <n-input
+                v-model:value="editForm.videoLinks[index]"
+                placeholder="https://example.com"
+              />
             </template>
           </n-dynamic-input>
         </n-form-item>

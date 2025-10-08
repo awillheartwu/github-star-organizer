@@ -84,8 +84,7 @@ async function handleSubmit() {
     const serverMessage = error.response?.data?.message
     if (status === 403) {
       allowRegistration.value = false
-      availabilityMessage.value =
-        serverMessage ?? '当前已关闭注册，请联系管理员开通。'
+      availabilityMessage.value = serverMessage ?? '当前已关闭注册，请联系管理员开通。'
       message.error(availabilityMessage.value)
     } else if (status === 409) {
       message.error('该邮箱已注册，请直接登录')
@@ -102,9 +101,7 @@ async function handleSubmit() {
   <div class="flex flex-col gap-6">
     <div class="text-center">
       <h1 class="text-2xl font-semibold text-slate-900">注册</h1>
-      <p class="text-sm text-slate-500">
-        创建一个账户以使用 GitHub Star Organizer
-      </p>
+      <p class="text-sm text-slate-500">创建一个账户以使用 GitHub Star Organizer</p>
     </div>
 
     <n-alert
@@ -132,11 +129,7 @@ async function handleSubmit() {
         />
       </n-form-item>
       <n-form-item path="displayName" label="显示名称 (可选)">
-        <n-input
-          v-model:value="formModel.displayName"
-          placeholder="请输入显示名称"
-          clearable
-        />
+        <n-input v-model:value="formModel.displayName" placeholder="请输入显示名称" clearable />
       </n-form-item>
       <n-form-item path="password" label="密码">
         <n-input

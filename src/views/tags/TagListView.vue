@@ -43,7 +43,9 @@ function syncFromRoute() {
     filters.archived = route.query.archived === 'true'
     filters.sort = typeof route.query.sort === 'string' ? route.query.sort : defaultFilters.sort
     filters.page = route.query.page ? Math.max(Number(route.query.page) || 1, 1) : 1
-    filters.pageSize = route.query.pageSize ? Math.max(Number(route.query.pageSize) || defaultFilters.pageSize, 1) : defaultFilters.pageSize
+    filters.pageSize = route.query.pageSize
+      ? Math.max(Number(route.query.pageSize) || defaultFilters.pageSize, 1)
+      : defaultFilters.pageSize
   } finally {
     syncing = false
   }
@@ -176,6 +178,12 @@ function handlePageSizeChange(pageSize: number) {
 const tags = computed(() => tagQuery.data.value)
 const isLoading = computed(() => tagQuery.isFetching.value)
 const totalItems = computed(() => tags.value?.total ?? 0)
+const loadError = computed(() => tagQuery.error.value)
+const hasError = computed(() => Boolean(loadError.value))
+const showEmptyState = computed(() => {
+  const items = tags.value?.data ?? []
+  return !hasError.value && !isLoading.value && tagQuery.isFetched.value && items.length === 0
+})
 
 watch(
   () => [totalItems.value, filters.pageSize],
@@ -211,7 +219,10 @@ async function submitCreate() {
     message.warning('请输入标签名称')
     return
   }
-  await createMutation.mutateAsync({ name: createForm.name.trim(), description: createForm.description.trim() || undefined })
+  await createMutation.mutateAsync({
+    name: createForm.name.trim(),
+    description: createForm.description.trim() || undefined,
+  })
   createModalVisible.value = false
 }
 
@@ -220,7 +231,10 @@ async function submitEdit() {
     message.warning('请输入标签名称')
     return
   }
-  await updateMutation.mutateAsync({ id: editForm.id, payload: { name: editForm.name.trim(), description: editForm.description.trim() || undefined } })
+  await updateMutation.mutateAsync({
+    id: editForm.id,
+    payload: { name: editForm.name.trim(), description: editForm.description.trim() || undefined },
+  })
   editModalVisible.value = false
 }
 
@@ -262,6 +276,21 @@ function handleDelete(row: TagListItem) {
       :row-key="(row: TagListItem) => row.id"
       bordered
     />
+
+    <div
+      v-if="hasError"
+      data-testid="tag-error"
+      class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600"
+    >
+      标签列表加载失败，请稍后重试。
+    </div>
+    <div
+      v-else-if="showEmptyState"
+      data-testid="tag-empty"
+      class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500"
+    >
+      暂无符合条件的标签。
+    </div>
 
     <div class="flex items-center justify-end">
       <n-pagination
