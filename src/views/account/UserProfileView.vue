@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import {
   NAlert,
@@ -31,6 +31,7 @@ const changeForm = reactive({
 const router = useRouter()
 const message = useMessage()
 const detailCardStyle = DETAIL_CARD_STYLE
+const isAdmin = computed(() => user.value?.role === 'ADMIN')
 
 async function refreshProfile() {
   if (refreshing.value) return
@@ -107,7 +108,7 @@ async function handleChangePassword() {
         <n-descriptions label-placement="left" bordered :column="1">
           <n-descriptions-item label="名称">{{ user.name ?? '未设置' }}</n-descriptions-item>
           <n-descriptions-item label="邮箱">{{ user.email ?? '未设置' }}</n-descriptions-item>
-          <n-descriptions-item label="用户 ID">{{ user.sub }}</n-descriptions-item>
+          <n-descriptions-item v-if="isAdmin" label="用户 ID">{{ user.sub }}</n-descriptions-item>
           <n-descriptions-item label="创建时间">{{
             formatDate(user.createdAt)
           }}</n-descriptions-item>

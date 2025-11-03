@@ -48,7 +48,7 @@ vi.mock('naive-ui', () => {
             type: 'button',
             onClick: (event: MouseEvent) => emit('click', event),
           },
-          slots.default?.() ?? null
+          slots.default?.()
         )
     },
   })
@@ -79,14 +79,14 @@ vi.mock('naive-ui', () => {
   const formStub = defineComponent({
     name: 'NForm',
     setup(_, { attrs, slots }) {
-      return () => h('form', attrs, slots.default?.() ?? null)
+      return () => h('form', attrs, slots.default?.())
     },
   })
 
   const formItemStub = defineComponent({
     name: 'NFormItem',
     setup(_, { attrs, slots }) {
-      return () => h('div', attrs, slots.default?.() ?? null)
+      return () => h('div', attrs, slots.default?.())
     },
   })
 
@@ -121,14 +121,14 @@ vi.mock('naive-ui', () => {
     },
     emits: ['update:show'],
     setup(_, { attrs, slots }) {
-      return () => h('div', attrs, slots)
+      return () => h('div', attrs, slots.default?.())
     },
   })
 
   const spaceStub = defineComponent({
     name: 'NSpace',
     setup(_, { attrs, slots }) {
-      return () => h('div', attrs, slots.default?.() ?? null)
+      return () => h('div', attrs, slots.default?.())
     },
   })
 
@@ -156,7 +156,7 @@ vi.mock('naive-ui', () => {
               emit('update:modelValue', next)
             },
           },
-          slots.default?.() ?? null
+          slots.default?.()
         )
     },
   })
@@ -164,7 +164,7 @@ vi.mock('naive-ui', () => {
   const tagStub = defineComponent({
     name: 'NTag',
     setup(_, { attrs, slots }) {
-      return () => h('span', attrs, slots.default?.() ?? null)
+      return () => h('span', attrs, slots.default?.())
     },
   })
 
@@ -172,9 +172,9 @@ vi.mock('naive-ui', () => {
     name: 'NPagination',
     emits: ['update:page', 'update:page-size'],
     setup(_, { attrs, slots, emit }) {
-      return () =>
-        h('div', { ...attrs, 'data-testid': attrs['data-testid'] ?? 'tag-pagination' }, [
-          slots.default?.() ?? null,
+      return () => {
+        const children = [...(slots.default?.() ?? [])]
+        children.push(
           h(
             'button',
             {
@@ -192,8 +192,14 @@ vi.mock('naive-ui', () => {
               onClick: () => emit('update:page-size', 50),
             },
             'size-50'
-          ),
-        ])
+          )
+        )
+        return h(
+          'div',
+          { ...attrs, 'data-testid': attrs['data-testid'] ?? 'tag-pagination' },
+          children
+        )
+      }
     },
   })
 

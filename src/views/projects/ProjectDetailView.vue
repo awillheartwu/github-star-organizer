@@ -373,8 +373,12 @@ function confirmDelete() {
       <n-grid-item>
         <n-card title="调试信息" size="small" :style="detailCardStyle">
           <n-descriptions :column="1" size="small">
-            <n-descriptions-item label="项目 ID">{{ project?.id }}</n-descriptions-item>
-            <n-descriptions-item label="GitHub ID">{{ project?.githubId }}</n-descriptions-item>
+            <n-descriptions-item v-if="isAdmin" label="项目 ID">
+              {{ project?.id }}
+            </n-descriptions-item>
+            <n-descriptions-item v-if="isAdmin" label="GitHub ID">
+              {{ project?.githubId }}
+            </n-descriptions-item>
             <n-descriptions-item label="Access Token 角色">{{
               auth.user?.role ?? '未知'
             }}</n-descriptions-item>

@@ -66,7 +66,16 @@ describe('tags queries', () => {
     const queryClient = createQueryClient()
     const response: PaginatedResponse<TagListItem[]> = {
       message: 'ok',
-      data: [{ id: '1', name: 'tag-a', description: null, color: '#fff', projectCount: 2 }],
+      data: [
+        {
+          id: '1',
+          name: 'tag-a',
+          description: null,
+          archived: false,
+          createdAt: '',
+          updatedAt: '',
+        },
+      ],
       page: 1,
       pageSize: 20,
       total: 1,
@@ -110,12 +119,13 @@ describe('tags queries', () => {
       id: '1',
       name: 'tag-a',
       description: null,
-      color: '#fff',
-      projectCount: 0,
       archived: false,
       createdAt: '',
       updatedAt: '',
-      projects: { data: [], page: 1, pageSize: 20, total: 0 },
+      projects: [],
+      projectsTotal: 0,
+      projectsPage: 1,
+      projectsPageSize: 20,
     } satisfies TagDetail)
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
 
@@ -129,7 +139,7 @@ describe('tags queries', () => {
 
     const { unmount } = renderWithQueryClient(TestComponent, queryClient)
 
-    const payload: TagPayload = { name: 'tag-a', description: null, color: '#fff' }
+    const payload: TagPayload = { name: 'tag-a', description: null }
     await mutations!.createMutation.mutateAsync(payload)
 
     expect(createTagMock).toHaveBeenCalledWith(payload)
@@ -145,12 +155,13 @@ describe('tags queries', () => {
       id: '1',
       name: 'tag-a',
       description: 'updated',
-      color: '#fff',
-      projectCount: 1,
       archived: false,
       createdAt: '',
       updatedAt: '',
-      projects: { data: [], page: 1, pageSize: 20, total: 0 },
+      projects: [],
+      projectsTotal: 0,
+      projectsPage: 1,
+      projectsPageSize: 20,
     } satisfies TagDetail)
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
 
@@ -215,7 +226,7 @@ describe('tags queries', () => {
     const { unmount } = renderWithQueryClient(TestComponent, queryClient)
 
     await expect(
-      mutations!.createMutation.mutateAsync({ name: 'tag', description: null, color: '#fff' })
+      mutations!.createMutation.mutateAsync({ name: 'tag', description: null })
     ).rejects.toThrow('失败')
     expect(messageMock.error).toHaveBeenCalledWith('失败')
 

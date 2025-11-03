@@ -20,7 +20,14 @@ vi.mock('../../api/http', () => ({
 
 const listResponse = {
   data: [
-    { id: '1', name: 'tag-a', description: null, color: '#fff', projectCount: 2 },
+    {
+      id: '1',
+      name: 'tag-a',
+      description: null,
+      archived: false,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-02T00:00:00.000Z',
+    },
   ] satisfies TagListItem[],
   page: 1,
   pageSize: 20,
@@ -65,17 +72,13 @@ describe('tags api service', () => {
       id: '1',
       name: 'tag-a',
       description: null,
-      color: '#fff',
-      projectCount: 2,
       archived: false,
       createdAt: '2024-01-01T00:00:00.000Z',
       updatedAt: '2024-01-10T00:00:00.000Z',
-      projects: {
-        data: [],
-        page: 1,
-        pageSize: 20,
-        total: 0,
-      },
+      projects: [],
+      projectsTotal: 0,
+      projectsPage: 1,
+      projectsPageSize: 20,
     }
     getMock.mockResolvedValue({
       data: { message: 'ok', data: detail },
@@ -93,12 +96,11 @@ describe('tags api service', () => {
     const detail = { ...listResponse.data[0], archived: false } as unknown as TagDetail
     postMock.mockResolvedValue({ data: { message: 'ok', data: detail } })
 
-    const created = await createTag({ name: 'tag-a', description: null, color: '#fff' })
+    const created = await createTag({ name: 'tag-a', description: null })
 
     expect(postMock).toHaveBeenCalledWith('/tags', {
       name: 'tag-a',
       description: null,
-      color: '#fff',
     })
     expect(created).toEqual(detail)
   })

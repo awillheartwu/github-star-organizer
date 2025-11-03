@@ -92,7 +92,7 @@ vi.mock('naive-ui', () => {
             type: 'button',
             onClick: (event: MouseEvent) => emit('click', event),
           },
-          slots.default?.() ?? null
+          slots.default?.()
         )
     },
   })
@@ -129,7 +129,7 @@ vi.mock('naive-ui', () => {
             ...attrs,
             'data-testid': attrs['data-testid'] ?? 'n-select',
           },
-          slots.default?.() ?? null
+          slots.default?.()
         )
     },
   })
@@ -150,7 +150,7 @@ vi.mock('naive-ui', () => {
             'data-testid': 'project-spin',
             'data-loading': props.show ? 'true' : 'false',
           },
-          slots.default?.() ?? null
+          slots.default?.()
         )
     },
   })
@@ -161,7 +161,7 @@ vi.mock('naive-ui', () => {
     setup(_, { attrs, slots, emit }) {
       return () =>
         h('div', { ...attrs, 'data-testid': 'pagination' }, [
-          slots.default?.() ?? null,
+          ...(slots.default?.() ?? []),
           h(
             'button',
             {
@@ -187,7 +187,7 @@ vi.mock('naive-ui', () => {
   const spaceStub = defineComponent({
     name: 'NSpace',
     setup(_, { slots }) {
-      return () => h('div', {}, slots.default?.() ?? null)
+      return () => h('div', {}, slots.default?.())
     },
   })
 
@@ -221,7 +221,7 @@ vi.mock('naive-ui', () => {
               emit('update:modelValue', next)
             },
           },
-          slots.default?.() ?? null
+          slots.default?.()
         )
     },
   })
@@ -230,7 +230,7 @@ vi.mock('naive-ui', () => {
     name: 'NInputNumber',
     emits: ['update:value'],
     setup(_, { slots }) {
-      return () => h('div', { 'data-testid': 'input-number' }, slots.default?.() ?? null)
+      return () => h('div', { 'data-testid': 'input-number' }, slots.default?.())
     },
   })
 

@@ -108,7 +108,7 @@ const activeKey = computed(() => {
 
 function handleUpdateValue(key: string) {
   const target = navigationMap.value.get(key)
-  if (target) {
+  if (target?.routeName && route.name !== target.routeName) {
     router.push({ name: target.routeName })
   }
 }

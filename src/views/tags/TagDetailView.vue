@@ -19,6 +19,7 @@ import { formatDate } from '../../utils/format'
 import { useTagDetailQuery, useTagMutations } from '../../queries/tags'
 import { DETAIL_CARD_STYLE } from '../../constants/ui'
 import { useMessage } from '../../utils/feedback'
+import { useAuthStore } from '../../stores/auth'
 
 const route = useRoute()
 const router = useRouter()
@@ -40,6 +41,8 @@ const { updateMutation } = useTagMutations()
 const tag = computed(() => tagQuery.data.value)
 const detailCardStyle = DETAIL_CARD_STYLE
 const isLoadingProjects = computed(() => tagQuery.isFetching.value)
+const auth = useAuthStore()
+const isAdmin = computed(() => auth.user?.role === 'ADMIN')
 const showProjectsPagination = computed(() => {
   const current = tag.value
   if (!current) return false
@@ -139,7 +142,7 @@ async function submitEdit() {
         <n-descriptions :column="1" size="small">
           <n-descriptions-item label="创建于">{{ formatDate(tag.createdAt) }}</n-descriptions-item>
           <n-descriptions-item label="更新于">{{ formatDate(tag.updatedAt) }}</n-descriptions-item>
-          <n-descriptions-item label="标签 ID">{{ tag.id }}</n-descriptions-item>
+          <n-descriptions-item v-if="isAdmin" label="标签 ID">{{ tag.id }}</n-descriptions-item>
         </n-descriptions>
       </div>
     </n-card>

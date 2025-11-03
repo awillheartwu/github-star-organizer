@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { reactive, computed, ref } from 'vue'
+import { reactive, computed } from 'vue'
 import { useMutation, useQuery } from '@tanstack/vue-query'
 import {
   NAlert,
   NButton,
   NCard,
-  NResult,
+  NDivider,
   NForm,
   NFormItem,
   NInput,
@@ -16,11 +16,13 @@ import {
   NSwitch,
 } from 'naive-ui'
 import { triggerSyncStars, getSyncState } from '../../api/admin'
-import { useMessage } from '../../utils/feedback'
-import type { SyncState } from '../../types/admin'
+import { useMessage, useNotification } from '../../utils/feedback'
+import { formatDate, formatNumber } from '../../utils/format'
+import type { SyncState, SyncStatsSummary } from '../../types/admin'
 import { DETAIL_CARD_STYLE } from '../../constants/ui'
 
 const message = useMessage()
+const notification = useNotification()
 
 const formModel = reactive({
   mode: 'incremental' as 'incremental' | 'full',
@@ -35,8 +37,6 @@ const syncStateQuery = useQuery({
   queryFn: getSyncState,
 })
 
-const lastTrigger = ref<{ jobId: string; triggeredAt: string } | null>(null)
-
 const enqueueMutation = useMutation({
   mutationFn: async () => {
     const payload = {
@@ -49,22 +49,45 @@ const enqueueMutation = useMutation({
     return triggerSyncStars(payload)
   },
   onSuccess(data) {
-    message.success(`已入列任务：${data.jobId}`)
-    lastTrigger.value = { jobId: data.jobId, triggeredAt: new Date().toISOString() }
+    const triggeredAt = new Date()
+    const triggeredAtText = formatDate(triggeredAt, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    })
+    notification.success({
+      title: '同步任务已提交',
+      content: '任务已加入同步队列，稍后可在“最近状态”卡片中查看执行情况。',
+      meta: `提交时间：${triggeredAtText} | Job ID：${data.jobId}`,
+      duration: 6000,
+    })
     void syncStateQuery.refetch()
   },
   onError(error) {
     message.error(`触发同步失败：${(error as Error).message}`)
   },
 })
+const syncState = computed<SyncState | null>(() => syncStateQuery.data.value ?? null)
+const syncStats = computed<SyncStatsSummary | null>(() => syncState.value?.latestStats ?? null)
 
-const syncState = computed<SyncState | null | undefined>(() => syncStateQuery.data.value ?? null)
-
-const lastTriggerDescription = computed(() => {
-  if (!lastTrigger.value) return ''
-  const triggeredAt = new Date(lastTrigger.value.triggeredAt).toLocaleString()
-  return `Job ID: ${lastTrigger.value.jobId} · 提交于 ${triggeredAt}`
-})
+const formatDuration = (ms?: number | null) => {
+  if (!ms && ms !== 0) return '--'
+  if (ms < 1000) return `${Math.round(ms)} ms`
+  const seconds = ms / 1000
+  if (seconds < 60) return `${seconds.toFixed(1)} 秒`
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = Math.round(seconds % 60)
+  if (minutes < 60) {
+    return remainingSeconds ? `${minutes} 分 ${remainingSeconds} 秒` : `${minutes} 分`
+  }
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  const parts: string[] = [`${hours} 小时`]
+  if (remainingMinutes) parts.push(`${remainingMinutes} 分`)
+  if (remainingSeconds) parts.push(`${remainingSeconds} 秒`)
+  return parts.join(' ')
+}
 
 function handleSubmit() {
   enqueueMutation.mutate()
@@ -117,23 +140,16 @@ const detailCardStyle = DETAIL_CARD_STYLE
       </n-space>
     </n-card>
 
-    <n-result
-      v-if="lastTrigger"
-      status="success"
-      title="同步任务已提交"
-      :description="lastTriggerDescription"
-    />
-
     <n-card title="最近状态" size="small" :style="detailCardStyle">
       <template v-if="syncState">
         <dl class="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
           <div>
             <dt class="text-xs uppercase text-slate-400">Last Run</dt>
-            <dd>{{ syncState?.lastRunAt ?? '—' }}</dd>
+            <dd>{{ formatDate(syncState?.lastRunAt) }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase text-slate-400">Last Success</dt>
-            <dd>{{ syncState?.lastSuccessAt ?? '—' }}</dd>
+            <dd>{{ formatDate(syncState?.lastSuccessAt) }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase text-slate-400">Last Error</dt>
@@ -141,13 +157,64 @@ const detailCardStyle = DETAIL_CARD_STYLE
           </div>
           <div>
             <dt class="text-xs uppercase text-slate-400">Updated</dt>
-            <dd>{{ syncState?.updatedAt }}</dd>
+            <dd>{{ formatDate(syncState?.updatedAt) }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase text-slate-400">Last Error At</dt>
+            <dd>{{ formatDate(syncState?.lastErrorAt) }}</dd>
+          </div>
+        </dl>
+        <n-divider v-if="syncStats" class="!my-4" />
+        <dl v-if="syncStats" class="grid gap-3 text-sm text-slate-600 md:grid-cols-3">
+          <div>
+            <dt class="text-xs uppercase text-slate-400">Scanned</dt>
+            <dd>{{ formatNumber(syncStats.scanned) }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase text-slate-400">Created</dt>
+            <dd>{{ formatNumber(syncStats.created) }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase text-slate-400">Updated</dt>
+            <dd>{{ formatNumber(syncStats.updated) }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase text-slate-400">Unchanged</dt>
+            <dd>{{ formatNumber(syncStats.unchanged) }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase text-slate-400">Soft Deleted</dt>
+            <dd>{{ formatNumber(syncStats.softDeleted) }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase text-slate-400">Pages</dt>
+            <dd>{{ formatNumber(syncStats.pages) }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase text-slate-400">Rate Limit Left</dt>
+            <dd>{{ formatNumber(syncStats.rateLimitRemaining ?? null) }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase text-slate-400">Started At</dt>
+            <dd>{{ formatDate(syncStats.startedAt) }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase text-slate-400">Finished At</dt>
+            <dd>{{ formatDate(syncStats.finishedAt) }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase text-slate-400">Duration</dt>
+            <dd>{{ formatDuration(syncStats.durationMs) }}</dd>
+          </div>
+          <div v-if="syncStats.errors !== undefined">
+            <dt class="text-xs uppercase text-slate-400">Errors</dt>
+            <dd>{{ formatNumber(syncStats.errors) }}</dd>
           </div>
         </dl>
       </template>
       <n-alert v-else-if="syncStateQuery.isLoading.value" type="info" show-icon
-        >正在加载同步状态…</n-alert
-      >
+        >正在加载同步状态…
+      </n-alert>
       <n-alert v-else type="default" show-icon>No Data</n-alert>
     </n-card>
   </div>

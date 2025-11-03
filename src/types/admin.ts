@@ -4,6 +4,15 @@ export interface QueueCounts {
   delayed: number
   completed: number
   failed: number
+  paused: number
+  waitingChildren: number
+  prioritized: number
+  stalled: number
+  total: number
+  totalProcessed: number
+  successRate?: number
+  isPaused: boolean
+  updatedAt: string
 }
 
 export interface QueuesStatus {
@@ -30,8 +39,23 @@ export interface SyncState {
   lastSuccessAt?: string | null
   lastErrorAt?: string | null
   lastError?: string | null
-  statsJson?: string | null
+  statsJson?: string | SyncStatsSummary | null
+  latestStats?: SyncStatsSummary | null
   updatedAt: string
+}
+
+export interface SyncStatsSummary {
+  scanned: number
+  created: number
+  updated: number
+  unchanged: number
+  softDeleted: number
+  pages: number
+  rateLimitRemaining?: number
+  errors?: number
+  startedAt?: string
+  finishedAt?: string
+  durationMs?: number
 }
 
 export interface ArchivedProjectSnapshot {
