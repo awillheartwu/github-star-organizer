@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { reactive } from 'vue'
 import { useMutation } from '@tanstack/vue-query'
 import {
   NButton,
@@ -10,14 +10,15 @@ import {
   NInputNumber,
   NRadio,
   NRadioGroup,
-  NResult,
   NSwitch,
 } from 'naive-ui'
 import { enqueueAiSummary, enqueueAiSweep } from '../../api/admin'
-import { useMessage } from '../../utils/feedback'
+import { useDialog, useMessage } from '../../utils/feedback'
 import { DETAIL_CARD_STYLE } from '../../constants/ui'
 
 const message = useMessage()
+const dialog = useDialog()
+const dialogStyle = { borderRadius: '16px' } as const
 
 const singleForm = reactive({
   projectId: '',
@@ -31,9 +32,6 @@ const sweepForm = reactive({
   lang: 'zh' as 'zh' | 'en',
   force: false,
 })
-
-const singleResult = ref<{ enqueued: number; triggeredAt: string } | null>(null)
-const sweepResult = ref<{ enqueued: number; total: number; triggeredAt: string } | null>(null)
 
 const enqueueSingleMutation = useMutation({
   mutationFn: async () => {
@@ -54,7 +52,15 @@ const enqueueSingleMutation = useMutation({
   },
   onSuccess(data) {
     message.success(`已入列 ${data.enqueued} 个项目摘要任务`)
-    singleResult.value = { enqueued: data.enqueued, triggeredAt: new Date().toISOString() }
+    const time = new Date().toLocaleString()
+    const queueInfo =
+      typeof data.queueRemaining === 'number' ? `（队列剩余 ${data.queueRemaining} 项）` : ''
+    dialog.success({
+      title: '摘要任务已提交',
+      content: `已入列 ${data.enqueued} 个任务${queueInfo} · 提交于 ${time}`,
+      positiveText: '好的',
+      style: dialogStyle,
+    })
   },
   onError(error) {
     message.error(`入列失败：${(error as Error).message}`)
@@ -72,28 +78,21 @@ const sweepMutation = useMutation({
     return result
   },
   onSuccess(data) {
-    message.success(`已入列 ${data.enqueued}/${data.total} 项`)
-    sweepResult.value = {
-      enqueued: data.enqueued,
-      total: data.total,
-      triggeredAt: new Date().toISOString(),
-    }
+    const queuedText = data.total > 0 ? `${data.enqueued}/${data.total}` : `${data.enqueued}`
+    const queueInfo =
+      typeof data.queueRemaining === 'number' ? `（队列剩余 ${data.queueRemaining} 项）` : ''
+    message.success(`已入列 ${queuedText} 项${queueInfo}`)
+    const time = new Date().toLocaleString()
+    dialog.success({
+      title: '批量扫描已提交',
+      content: `已入列 ${queuedText} 项${queueInfo} · 提交于 ${time}`,
+      positiveText: '好的',
+      style: dialogStyle,
+    })
   },
   onError(error) {
     message.error(`批量扫描失败：${(error as Error).message}`)
   },
-})
-
-const singleResultDescription = computed(() => {
-  if (!singleResult.value) return ''
-  const time = new Date(singleResult.value.triggeredAt).toLocaleString()
-  return `已入列 ${singleResult.value.enqueued} 个任务 · 提交于 ${time}`
-})
-
-const sweepResultDescription = computed(() => {
-  if (!sweepResult.value) return ''
-  const time = new Date(sweepResult.value.triggeredAt).toLocaleString()
-  return `已入列 ${sweepResult.value.enqueued}/${sweepResult.value.total} 项 · 提交于 ${time}`
 })
 
 function enqueueSingle() {
@@ -158,13 +157,6 @@ const detailCardStyle = DETAIL_CARD_STYLE
       </n-button>
     </n-card>
 
-    <n-result
-      v-if="singleResult"
-      status="success"
-      title="摘要任务已提交"
-      :description="singleResultDescription"
-    />
-
     <n-card title="批量扫描" size="large" :style="detailCardStyle">
       <n-form label-width="120" label-placement="left">
         <n-form-item label="数量上限">
@@ -187,12 +179,5 @@ const detailCardStyle = DETAIL_CARD_STYLE
         批量入列
       </n-button>
     </n-card>
-
-    <n-result
-      v-if="sweepResult"
-      status="success"
-      title="批量扫描已提交"
-      :description="sweepResultDescription"
-    />
   </div>
 </template>

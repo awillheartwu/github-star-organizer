@@ -439,7 +439,7 @@ describe('QueueOverviewView', () => {
     await user.click(bullBoardButtons[0]!)
 
     expect(openSpy).toHaveBeenCalledTimes(1)
-    const targetUrl = openSpy.mock.calls[0]?.[0] as string
+    const targetUrl = openSpy!.mock.calls[0]?.[0] as string
     expect(targetUrl).toContain('/admin/queues/ui/queue/sync-stars')
     expect(messageMock.warning).not.toHaveBeenCalled()
   })

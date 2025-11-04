@@ -111,8 +111,21 @@ export async function getArchivedProject(id: string) {
   return data.data
 }
 
+type EnqueueSummaryResponse = {
+  message: string
+  enqueued: number
+  queueRemaining?: number
+}
+
+type EnqueueSweepResponse = {
+  message: string
+  enqueued: number
+  total: number
+  queueRemaining?: number
+}
+
 export async function enqueueAiSummary(payload: AiSummaryPayload) {
-  const { data } = await api.post<{ message: string; enqueued: number }>(
+  const { data } = await api.post<EnqueueSummaryResponse>(
     '/admin/ai/summary/enqueue',
     payload
   )
@@ -120,7 +133,7 @@ export async function enqueueAiSummary(payload: AiSummaryPayload) {
 }
 
 export async function enqueueAiSweep(payload: AiSweepPayload) {
-  const { data } = await api.post<{ message: string; enqueued: number; total: number }>(
+  const { data } = await api.post<EnqueueSweepResponse>(
     '/admin/ai/summary/sweep',
     payload
   )
