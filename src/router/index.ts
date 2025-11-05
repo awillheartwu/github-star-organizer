@@ -155,10 +155,18 @@ function hasRole(user: AuthUser | null, roles?: string[]) {
 export function setupRouterGuards(routerInstance: Router, auth: AuthStore) {
   const message = useMessage()
   const loadingBar = useLoadingBar()
-  const { isAuthenticated, user } = storeToRefs(auth)
+  const { isAuthenticated, user, ready } = storeToRefs(auth)
 
   routerInstance.beforeEach(async (to, _from, next) => {
     loadingBar?.start()
+
+    if (!ready.value) {
+      try {
+        await auth.initialize()
+      } catch {
+        // initialize already logs/handles errors; proceed with current auth state
+      }
+    }
 
     if ((to.name === 'login' || to.name === 'register') && isAuthenticated.value) {
       next({ name: 'projects' })

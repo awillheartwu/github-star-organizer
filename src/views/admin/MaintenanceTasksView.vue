@@ -1,19 +1,33 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { h } from 'vue'
 import { useMutation } from '@tanstack/vue-query'
-import { NButton, NCard, NResult } from 'naive-ui'
+import { NButton, NCard } from 'naive-ui'
 import { runMaintenance } from '../../api/admin'
-import { useMessage } from '../../utils/feedback'
+import { useDialog, useMessage } from '../../utils/feedback'
 import { DETAIL_CARD_STYLE } from '../../constants/ui'
 
 const message = useMessage()
-const lastJobId = ref<string | null>(null)
+const dialog = useDialog()
+const dialogStyle = { borderRadius: '16px' } as const
 
 const runMutation = useMutation({
   mutationFn: runMaintenance,
   onSuccess(data) {
-    lastJobId.value = data.jobId
     message.success(`维护任务已启动：${data.jobId}`)
+    const triggeredAt = new Date().toLocaleString()
+    dialog.success({
+      title: '维护任务已触发',
+      content: () =>
+        h('div', { class: 'flex flex-col gap-2 text-sm text-slate-600' }, [
+          h('p', { class: 'leading-relaxed text-slate-600' }, '任务已加入维护队列。'),
+          h('div', { class: 'space-y-1 text-xs text-slate-400' }, [
+            h('div', null, `提交时间：${triggeredAt}`),
+            h('div', null, `Job ID：${data.jobId}`),
+          ]),
+        ]),
+      positiveText: '好的',
+      style: dialogStyle,
+    })
   },
   onError(error) {
     message.error(`维护任务触发失败：${(error as Error).message}`)
@@ -42,12 +56,5 @@ const detailCardStyle = DETAIL_CARD_STYLE
         立即执行维护
       </n-button>
     </n-card>
-
-    <n-result
-      v-if="lastJobId"
-      status="success"
-      title="已触发维护任务"
-      :description="`Job ID: ${lastJobId}`"
-    />
   </div>
 </template>

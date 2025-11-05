@@ -9,7 +9,7 @@ import AppTopBar from '../components/layout/AppTopBar.vue'
     <AppSidebar />
     <div class="flex min-h-screen flex-1 flex-col">
       <AppTopBar />
-      <main class="flex-1 overflow-y-auto p-6">
+      <main class="flex-1 p-6">
         <RouterView />
       </main>
     </div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, computed } from 'vue'
+import { h, reactive, computed } from 'vue'
 import { useMutation, useQuery } from '@tanstack/vue-query'
 import {
   NAlert,
@@ -16,13 +16,14 @@ import {
   NSwitch,
 } from 'naive-ui'
 import { triggerSyncStars, getSyncState } from '../../api/admin'
-import { useMessage, useNotification } from '../../utils/feedback'
+import { useDialog, useMessage } from '../../utils/feedback'
 import { formatDate, formatNumber } from '../../utils/format'
 import type { SyncState, SyncStatsSummary } from '../../types/admin'
 import { DETAIL_CARD_STYLE } from '../../constants/ui'
 
 const message = useMessage()
-const notification = useNotification()
+const dialog = useDialog()
+const dialogStyle = { borderRadius: '16px' } as const
 
 const formModel = reactive({
   mode: 'incremental' as 'incremental' | 'full',
@@ -38,29 +39,33 @@ const syncStateQuery = useQuery({
 })
 
 const enqueueMutation = useMutation({
-  mutationFn: async () => {
-    const payload = {
+  mutationFn: async () =>
+    triggerSyncStars({
       mode: formModel.mode,
       perPage: formModel.perPage,
       maxPages: formModel.maxPages,
       softDeleteUnstarred: formModel.softDeleteUnstarred,
       note: formModel.note || undefined,
-    }
-    return triggerSyncStars(payload)
-  },
+    }),
   onSuccess(data) {
-    const triggeredAt = new Date()
-    const triggeredAtText = formatDate(triggeredAt, {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    })
-    notification.success({
+    const triggeredAtText = new Date().toLocaleString()
+    message.success(`同步任务已提交：${data.jobId}`)
+    dialog.success({
       title: '同步任务已提交',
-      content: '任务已加入同步队列，稍后可在“最近状态”卡片中查看执行情况。',
-      meta: `提交时间：${triggeredAtText} | Job ID：${data.jobId}`,
-      duration: 6000,
+      content: () =>
+        h('div', { class: 'flex flex-col gap-2 text-sm text-slate-600' }, [
+          h(
+            'p',
+            { class: 'leading-relaxed text-slate-600' },
+            '任务已加入同步队列，稍后可在“最近状态”卡片中查看执行情况。'
+          ),
+          h('div', { class: 'space-y-1 text-xs text-slate-400' }, [
+            h('div', null, `提交时间：${triggeredAtText}`),
+            h('div', null, `Job ID：${data.jobId}`),
+          ]),
+        ]),
+      positiveText: '好的',
+      style: dialogStyle,
     })
     void syncStateQuery.refetch()
   },

@@ -115,7 +115,9 @@ function handleUpdateValue(key: string) {
 </script>
 
 <template>
-  <aside class="flex min-h-screen w-64 flex-col border-r border-slate-200 bg-white">
+  <aside
+    class="sticky top-0 flex h-screen w-64 flex-col self-start border-r border-slate-200 bg-white"
+  >
     <div class="flex h-16 items-center border-b border-slate-200 px-6 text-xl font-semibold">
       GitHub Stars
     </div>

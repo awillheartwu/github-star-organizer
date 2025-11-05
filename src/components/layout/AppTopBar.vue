@@ -30,7 +30,9 @@ async function handleSelect(key: string | number) {
 </script>
 
 <template>
-  <header class="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6">
+  <header
+    class="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/90 px-6 backdrop-blur"
+  >
     <div class="flex flex-col">
       <h1 class="text-lg font-semibold text-slate-900">{{ pageTitle }}</h1>
       <span class="text-xs text-slate-500">GitHub Star Organizer</span>

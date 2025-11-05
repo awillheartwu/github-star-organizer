@@ -18,12 +18,14 @@ export interface TagDetail extends TagSummary {
   projectsTotal?: number
   projectsPage?: number
   projectsPageSize?: number
+  projectCount?: number
 }
 
 export interface TagListItem extends TagDetail {
   archived: boolean
   createdAt: string
   updatedAt: string
+  projectCount: number
 }
 
 export interface TagPayload {

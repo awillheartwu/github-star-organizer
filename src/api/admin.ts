@@ -48,6 +48,8 @@ export interface ArchivedProjectsQuery {
 export interface AiBatchQuery {
   page?: number
   pageSize?: number
+  sortField?: 'lastRunAt' | 'lastSuccessAt' | 'updatedAt'
+  sortOrder?: 'asc' | 'desc'
 }
 
 export async function getQueuesStatus() {
@@ -125,18 +127,12 @@ type EnqueueSweepResponse = {
 }
 
 export async function enqueueAiSummary(payload: AiSummaryPayload) {
-  const { data } = await api.post<EnqueueSummaryResponse>(
-    '/admin/ai/summary/enqueue',
-    payload
-  )
+  const { data } = await api.post<EnqueueSummaryResponse>('/admin/ai/summary/enqueue', payload)
   return data
 }
 
 export async function enqueueAiSweep(payload: AiSweepPayload) {
-  const { data } = await api.post<EnqueueSweepResponse>(
-    '/admin/ai/summary/sweep',
-    payload
-  )
+  const { data } = await api.post<EnqueueSweepResponse>('/admin/ai/summary/sweep', payload)
   return data
 }
 

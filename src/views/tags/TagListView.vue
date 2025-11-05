@@ -13,6 +13,7 @@ import {
   NSwitch,
   NTag,
   NPagination,
+  NSelect,
 } from 'naive-ui'
 import FilterBar from '../../components/common/FilterBar.vue'
 import type { TagListItem } from '../../types/tag'
@@ -28,10 +29,36 @@ const message = useMessage()
 const defaultFilters = {
   keyword: '',
   archived: false,
-  sort: 'updatedAt:desc',
+  sort: 'projectCount:desc',
   page: 1,
   pageSize: 20,
 }
+
+const sortOptions = [
+  { label: '按关联项目数量', value: 'projectCount' },
+  { label: '按最近更新', value: 'updatedAt' },
+]
+
+const sortDirectionOptions = [
+  { label: '降序', value: 'desc' },
+  { label: '升序', value: 'asc' },
+]
+
+const sortField = computed({
+  get: () => filters.sort.split(':')[0] || 'projectCount',
+  set: (value: string) => {
+    const direction = filters.sort.split(':')[1] || 'desc'
+    filters.sort = `${value}:${direction}`
+  },
+})
+
+const sortDirection = computed({
+  get: () => (filters.sort.split(':')[1] === 'asc' ? 'asc' : 'desc'),
+  set: (value: string) => {
+    const field = filters.sort.split(':')[0] || 'projectCount'
+    filters.sort = `${field}:${value}`
+  },
+})
 
 const filters = reactive({ ...defaultFilters })
 let syncing = false
@@ -101,6 +128,14 @@ const columns = computed<DataTableColumns<TagListItem>>(() => [
     key: 'description',
     render(row) {
       return row.description || '--'
+    },
+  },
+  {
+    title: '关联项目数',
+    key: 'projectCount',
+    width: 140,
+    render(row) {
+      return row.projectCount ?? 0
     },
   },
   {
@@ -255,6 +290,18 @@ function handleDelete(row: TagListItem) {
       <template #filters>
         <div class="flex flex-wrap items-center gap-3">
           <n-input v-model:value="filters.keyword" class="w-64" clearable placeholder="搜索标签" />
+          <n-select
+            v-model:value="sortField"
+            class="w-52"
+            :options="sortOptions"
+            placeholder="排序字段"
+          />
+          <n-select
+            v-model:value="sortDirection"
+            class="w-36"
+            :options="sortDirectionOptions"
+            placeholder="排序方向"
+          />
           <div class="flex items-center gap-2 text-sm text-slate-600">
             <n-switch v-model:value="filters.archived" size="small" />
             <span>仅显示归档</span>
