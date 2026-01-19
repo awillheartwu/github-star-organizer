@@ -2,6 +2,9 @@
 <p align="center">
 Vue 3 + Naive UI 的管理面板，为 GitHub Star Organizer 后端提供可视化操作、过滤与队列管控。
 </p>
+<p align="center">
+  <img src="./public/site.png" alt="GitHub Star Organizer UI Preview" width="960" />
+</p>
 
 ## 目录
 - [特性概览](#特性概览)
