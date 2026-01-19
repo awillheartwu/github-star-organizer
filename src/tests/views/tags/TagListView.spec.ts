@@ -111,6 +111,35 @@ vi.mock('naive-ui', () => {
     },
   })
 
+  const selectStub = defineComponent({
+    name: 'NSelect',
+    props: {
+      value: [String, Number, Boolean],
+      options: {
+        type: Array,
+        default: () => [],
+      },
+    },
+    emits: ['update:value'],
+    setup(props, { attrs, emit }) {
+      return () =>
+        h(
+          'select',
+          {
+            ...attrs,
+            value: props.value ?? '',
+            onChange: (event: Event) => {
+              const target = event.target as HTMLSelectElement
+              emit('update:value', target.value)
+            },
+          },
+          (props.options as Array<{ label: string; value: string }>).map((option) =>
+            h('option', { value: option.value }, option.label)
+          )
+        )
+    },
+  })
+
   const modalStub = defineComponent({
     name: 'NModal',
     props: {
@@ -209,6 +238,7 @@ vi.mock('naive-ui', () => {
     NForm: formStub,
     NFormItem: formItemStub,
     NInput: inputStub,
+    NSelect: selectStub,
     NModal: modalStub,
     NSpace: spaceStub,
     NSwitch: switchStub,

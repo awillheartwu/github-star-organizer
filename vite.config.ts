@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [vue()],
   test: {
     environment: 'jsdom',
-    setupFiles: './src/test/setup.ts',
+    setupFiles: './src/tests/setup.ts',
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],
