@@ -326,9 +326,9 @@ function confirmDelete() {
 
         <div
           v-if="project"
-          class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700"
+          class="rounded-xl border border-[var(--app-note-border)] bg-[var(--app-note-bg)] p-4 text-sm text-[var(--app-note-text)]"
         >
-          <h3 class="mb-2 text-sm font-semibold">管理员备注</h3>
+          <h3 class="mb-2 text-sm font-semibold text-[var(--app-note-title)]">管理员备注</h3>
           <span :class="{ 'opacity-60': !hasNotes }">{{ notesDisplay }}</span>
         </div>
 

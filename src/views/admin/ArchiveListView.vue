@@ -3,7 +3,7 @@ import { computed, h, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
 import type { DataTableColumns } from 'naive-ui'
-import { NButton, NDataTable, NPagination, NTag } from 'naive-ui'
+import { NButton, NDataTable, NPagination, NSelect, NTag } from 'naive-ui'
 import { listArchivedProjects } from '../../api/admin'
 import type { ArchivedProjectSnapshot } from '../../types/admin'
 import { formatDate } from '../../utils/format'
@@ -111,9 +111,19 @@ const columns = computed<DataTableColumns<ArchivedProjectSnapshot>>(() => [
 
 const archived = computed(() => archivedQuery.data.value)
 const isLoading = computed(() => archivedQuery.isFetching.value)
+const reasonOptions = [
+  { label: '全部', value: '' },
+  { label: '手动', value: 'manual' },
+  { label: '取消 Star', value: 'unstarred' },
+]
 
 function handlePageSizeChange(pageSize: number) {
   filters.pageSize = pageSize
+  filters.page = 1
+}
+
+function handleReasonChange(value: '' | 'manual' | 'unstarred') {
+  filters.reason = value
   filters.page = 1
 }
 </script>
@@ -125,18 +135,15 @@ function handlePageSizeChange(pageSize: number) {
         <h2 class="text-lg font-semibold text-slate-900">归档项目</h2>
         <p class="text-sm text-slate-500">查看已归档仓库及归档原因</p>
       </div>
-      <div class="flex items-center gap-2 text-sm text-slate-600">
-        <label class="flex items-center gap-2">
-          <span>原因筛选</span>
-          <select
-            v-model="filters.reason"
-            class="rounded-md border border-slate-300 px-3 py-1 text-sm"
-          >
-            <option value="">全部</option>
-            <option value="manual">手动</option>
-            <option value="unstarred">取消 Star</option>
-          </select>
-        </label>
+      <div class="flex items-center gap-3 text-sm text-slate-600">
+        <span class="whitespace-nowrap">原因筛选</span>
+        <n-select
+          size="small"
+          class="w-32"
+          :value="filters.reason"
+          :options="reasonOptions"
+          @update:value="handleReasonChange"
+        />
       </div>
     </div>
 

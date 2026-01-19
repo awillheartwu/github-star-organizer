@@ -116,9 +116,11 @@ function handleUpdateValue(key: string) {
 
 <template>
   <aside
-    class="sticky top-0 flex h-screen w-64 flex-col self-start border-r border-slate-200 bg-white"
+    class="sticky top-0 flex h-screen w-64 flex-col self-start border-r border-[var(--app-border)] bg-[var(--app-panel)] transition-colors"
   >
-    <div class="flex h-16 items-center border-b border-slate-200 px-6 text-xl font-semibold">
+    <div
+      class="flex h-16 items-center border-b border-[var(--app-border)] px-6 text-xl font-semibold"
+    >
       GitHub Stars
     </div>
     <div class="flex-1 overflow-y-auto px-2 py-4">

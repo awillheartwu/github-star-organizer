@@ -3,7 +3,7 @@ import { computed, h, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
 import type { DataTableColumns } from 'naive-ui'
-import { NButton, NDataTable, NPagination, NTag } from 'naive-ui'
+import { NButton, NDataTable, NPagination, NSelect, NTag } from 'naive-ui'
 import { listAiBatches } from '../../api/admin'
 import type { AiBatchItem } from '../../types/admin'
 import { formatDate } from '../../utils/format'
@@ -144,6 +144,10 @@ const totalItems = ref(0)
 const pageSizeFromServer = ref(filters.pageSize)
 const isLoading = computed(() => batchQuery.isFetching.value)
 const sortButtonLabel = computed(() => (filters.sortOrder === 'desc' ? '按时间顺序' : '按时间倒序'))
+const sortOptions = [
+  { label: '按时间倒序', value: 'desc' },
+  { label: '按时间顺序', value: 'asc' },
+]
 
 watch(
   () => batchQuery.data.value,
@@ -165,6 +169,11 @@ function toggleSortOrder() {
   filters.sortOrder = filters.sortOrder === 'desc' ? 'asc' : 'desc'
   filters.page = 1
 }
+
+function handleSortOrderChange(value: SortOrder) {
+  filters.sortOrder = value
+  filters.page = 1
+}
 </script>
 
 <template>
@@ -174,9 +183,16 @@ function toggleSortOrder() {
         <h2 class="text-lg font-semibold text-slate-900">AI 批次</h2>
         <p class="text-sm text-slate-500">查看历史摘要批次及统计</p>
       </div>
-      <n-button quaternary size="small" @click="toggleSortOrder">
-        {{ sortButtonLabel }}
-      </n-button>
+      <div class="flex items-center gap-3 text-sm text-slate-600">
+        <span class="whitespace-nowrap">排序</span>
+        <n-select
+          size="small"
+          class="w-32"
+          :value="filters.sortOrder"
+          :options="sortOptions"
+          @update:value="handleSortOrderChange"
+        />
+      </div>
     </div>
 
     <n-data-table

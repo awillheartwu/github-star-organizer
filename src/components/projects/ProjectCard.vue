@@ -125,7 +125,8 @@ function handleCardClick(event: MouseEvent) {
 <style scoped>
 .project-card {
   border-radius: 16px;
-  border: 1px solid rgb(226 232 240 / 1);
+  border: 1px solid var(--app-card-border);
+  box-shadow: var(--app-card-shadow);
   cursor: pointer;
 }
 </style>
