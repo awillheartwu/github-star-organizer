@@ -10,26 +10,43 @@ on:
     paths:
       - 'src/**'
       - 'public/**'
+      - 'index.html'
+      - 'vite.config.ts'
+      - 'postcss.config.js'
+      - 'tailwind.config.js'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'tsconfig*.json'
-      - 'vite.config.*'
       - '.forgejo/workflows/frontend.yml'
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+      - 'nginx.conf'
   pull_request:
     branches: [main]
     paths:
       - 'src/**'
       - 'public/**'
+      - 'index.html'
+      - 'vite.config.ts'
+      - 'postcss.config.js'
+      - 'tailwind.config.js'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'tsconfig*.json'
-      - 'vite.config.*'
       - '.forgejo/workflows/frontend.yml'
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+      - 'nginx.conf'
 
 jobs:
-  lint-and-build:
+  build-and-test:
     runs-on: [self-hosted, linux, docker]
-    container: node:22-slim
+    container:
+      image: node:22-slim
+    env:
+      NODE_ENV: test
+      DOCKER_API_VERSION: '1.43'
+      VITE_API_BASE_URL: ${{ secrets.GSOR_FE_VITE_API_BASE_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,15 +66,69 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-frontend-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-frontend-pnpm-
+            ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Ensure VITE_API_BASE_URL
+        shell: bash
+        run: |
+          if [[ -z "${VITE_API_BASE_URL}" ]]; then
+            echo "VITE_API_BASE_URL=http://localhost:3000" >> "$GITHUB_ENV"
+          fi
+
       - name: Lint
-        run: pnpm run lint
+        run: pnpm lint
+
+      - name: Run unit tests
+        run: pnpm test
 
       - name: Build
-        run: pnpm run build
+        run: pnpm build
+
+      - name: Install Docker CLI (Debian bookworm)
+        run: |
+          apt-get update
+          apt-get install -y ca-certificates curl gnupg
+          install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+          chmod a+r /etc/apt/keyrings/docker.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+            https://download.docker.com/linux/debian bookworm stable" \
+            > /etc/apt/sources.list.d/docker.list
+          apt-get update
+          apt-get install -y docker-ce-cli docker-compose-plugin
+
+      - name: Sanity check docker
+        run: |
+          echo "DOCKER_HOST=$DOCKER_HOST"
+          echo "DOCKER_API_VERSION=$DOCKER_API_VERSION"
+          docker version
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --build-arg VITE_API_BASE_URL="${VITE_API_BASE_URL}" \
+            -t gsor-frontend:latest \
+            -t gsor-frontend:${{ github.sha }} \
+            -f Dockerfile .
+
+      - name: Deploy (docker compose up)
+        if: github.event_name == 'push'
+        run: |
+          docker compose \
+            --project-directory "$PWD" \
+            -f docker-compose.yml \
+            up -d --no-build --remove-orphans
+
+      - name: Cleanup old images (keep latest 3 builds)
+        if: github.event_name == 'push'
+        run: |
+          docker images --format '{{.Repository}}:{{.Tag}} {{.CreatedAt}}' \
+            | awk '$1 ~ /^gsor-frontend:/ && $1 !~ /:latest$/ {print $0}' \
+            | sort -rk2 \
+            | awk 'NR>3 {print $1}' \
+            | xargs -r docker rmi
