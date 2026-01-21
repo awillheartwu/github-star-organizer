@@ -92,7 +92,6 @@ const openBullBoard = (name: string) => {
   window.open(target, '_blank', 'noopener')
 }
 
-const descriptionsColumns = { xs: 1, m: 3 }
 </script>
 
 <template>

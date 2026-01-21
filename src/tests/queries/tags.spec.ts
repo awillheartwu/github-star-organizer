@@ -74,6 +74,7 @@ describe('tags queries', () => {
           archived: false,
           createdAt: '',
           updatedAt: '',
+          projectCount: 0,
         },
       ],
       page: 1,

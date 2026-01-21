@@ -27,6 +27,7 @@ const listResponse = {
       archived: false,
       createdAt: '2024-01-01T00:00:00.000Z',
       updatedAt: '2024-01-02T00:00:00.000Z',
+      projectCount: 0,
     },
   ] satisfies TagListItem[],
   page: 1,

@@ -143,7 +143,6 @@ const batchList = ref<AiBatchItem[]>([])
 const totalItems = ref(0)
 const pageSizeFromServer = ref(filters.pageSize)
 const isLoading = computed(() => batchQuery.isFetching.value)
-const sortButtonLabel = computed(() => (filters.sortOrder === 'desc' ? '按时间顺序' : '按时间倒序'))
 const sortOptions = [
   { label: '按时间倒序', value: 'desc' },
   { label: '按时间顺序', value: 'asc' },
@@ -162,11 +161,6 @@ watch(
 
 function handlePageSizeChange(pageSize: number) {
   filters.pageSize = pageSize
-  filters.page = 1
-}
-
-function toggleSortOrder() {
-  filters.sortOrder = filters.sortOrder === 'desc' ? 'asc' : 'desc'
   filters.page = 1
 }
 
