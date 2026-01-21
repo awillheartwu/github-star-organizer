@@ -91,7 +91,6 @@ const openBullBoard = (name: string) => {
   const target = `${bullBoardBase}/admin/queues/ui/queue/${slug}`
   window.open(target, '_blank', 'noopener')
 }
-
 </script>
 
 <template>
