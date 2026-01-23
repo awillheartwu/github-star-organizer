@@ -209,6 +209,7 @@ watch(
 const sortOptions = [
   { label: '最近同步', value: 'lastSyncAt:desc' },
   { label: '最近更新', value: 'updatedAt:desc' },
+  { label: '最近提交', value: 'lastCommit:desc' },
   { label: 'Star 数量', value: 'stars:desc' },
   { label: 'Fork 数量', value: 'forks:desc' },
   { label: '按名称 (A-Z)', value: 'name:asc' },
