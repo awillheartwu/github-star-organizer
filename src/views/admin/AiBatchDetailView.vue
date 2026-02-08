@@ -10,12 +10,12 @@ import type { SyncStatsSummary } from '../../types/admin'
 
 const route = useRoute()
 const router = useRouter()
-const batchKey = computed(() => route.params.id as string)
+const batchId = computed(() => route.params.id as string)
 
 const batchQuery = useQuery({
-  queryKey: computed(() => ['admin', 'ai-batch', batchKey.value]),
-  enabled: computed(() => Boolean(batchKey.value)),
-  queryFn: async () => getAiBatch(batchKey.value),
+  queryKey: computed(() => ['admin', 'ai-batch', batchId.value]),
+  enabled: computed(() => Boolean(batchId.value)),
+  queryFn: async () => getAiBatch(batchId.value),
 })
 
 const batch = computed(() => batchQuery.data.value)
@@ -87,8 +87,8 @@ const statsSummaryItems = computed(() => {
   <div class="flex flex-col gap-4">
     <div class="flex items-center justify-between">
       <div>
-        <h2 class="text-lg font-semibold text-slate-900">AI 批次详情</h2>
-        <p class="text-sm text-slate-500">{{ batchKey }}</p>
+        <h2 class="text-lg font-semibold text-slate-900">任务详情</h2>
+        <p class="text-sm text-slate-500">{{ batch?.key ?? batchId }}</p>
       </div>
       <n-button tertiary @click.prevent="router.back()">返回</n-button>
     </div>
@@ -100,12 +100,28 @@ const statsSummaryItems = computed(() => {
     <n-card v-if="batch" size="large" :style="detailCardStyle">
       <dl class="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
         <div>
+          <dt class="text-xs uppercase text-slate-400">任务类型</dt>
+          <dd>{{ batch?.source || '--' }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs uppercase text-slate-400">创建时间</dt>
+          <dd>{{ formatDate(batch?.createdAt) }}</dd>
+        </div>
+        <div>
           <dt class="text-xs uppercase text-slate-400">最后运行</dt>
           <dd>{{ formatDate(batch.lastRunAt) }}</dd>
         </div>
         <div>
           <dt class="text-xs uppercase text-slate-400">最后成功</dt>
           <dd>{{ formatDate(batch.lastSuccessAt) }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs uppercase text-slate-400">最后失败</dt>
+          <dd>{{ formatDate(batch.lastErrorAt) }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs uppercase text-slate-400">错误信息</dt>
+          <dd class="line-clamp-3">{{ batch.lastError || '--' }}</dd>
         </div>
         <div class="md:col-span-2">
           <dt class="text-xs uppercase text-slate-400">统计数据</dt>

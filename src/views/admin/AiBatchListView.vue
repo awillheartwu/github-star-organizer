@@ -10,7 +10,7 @@ import { formatDate } from '../../utils/format'
 
 const router = useRouter()
 const route = useRoute()
-const sortFieldOptions = ['lastRunAt', 'lastSuccessAt', 'updatedAt'] as const
+const sortFieldOptions = ['createdAt', 'lastRunAt', 'lastSuccessAt', 'lastErrorAt'] as const
 type SortField = (typeof sortFieldOptions)[number]
 type SortOrder = 'asc' | 'desc'
 
@@ -22,7 +22,7 @@ const defaultFilters: {
 } = {
   page: 1,
   pageSize: 20,
-  sortField: 'lastRunAt',
+  sortField: 'createdAt',
   sortOrder: 'desc',
 }
 
@@ -94,15 +94,28 @@ watch(
 
 const columns = computed<DataTableColumns<AiBatchItem>>(() => [
   {
-    title: '批次 KEY',
+    title: '任务类型',
+    key: 'source',
+    minWidth: 120,
+    render(row) {
+      const map: Record<string, string> = {
+        'github:stars': 'Stars 同步',
+        maintenance: '维护任务',
+        'ai:summary': 'AI 批次',
+      }
+      return map[row.source] ?? row.source
+    },
+  },
+  {
+    title: '任务 KEY',
     key: 'key',
-    minWidth: 200,
+    minWidth: 220,
   },
   {
     title: '最后运行',
     key: 'lastRunAt',
     render(row) {
-      return formatDate(row.lastRunAt)
+      return formatDate(row.lastRunAt ?? row.createdAt)
     },
   },
   {
@@ -116,6 +129,9 @@ const columns = computed<DataTableColumns<AiBatchItem>>(() => [
     title: '状态',
     key: 'statsJson',
     render(row) {
+      if (row.lastErrorAt || row.lastError) {
+        return h(NTag, { size: 'small', type: 'error' }, { default: () => '失败' })
+      }
       return row.statsJson
         ? h(NTag, { size: 'small', type: 'info' }, { default: () => '有统计数据' })
         : h(NTag, { size: 'small', type: 'default' }, { default: () => '待生成' })
@@ -131,7 +147,7 @@ const columns = computed<DataTableColumns<AiBatchItem>>(() => [
         {
           size: 'small',
           quaternary: true,
-          onClick: () => router.push({ name: 'admin-ai-batch-detail', params: { id: row.key } }),
+          onClick: () => router.push({ name: 'admin-ai-batch-detail', params: { id: row.id } }),
         },
         { default: () => '查看' }
       )
@@ -174,8 +190,8 @@ function handleSortOrderChange(value: SortOrder) {
   <div class="flex flex-col gap-4">
     <div class="flex flex-wrap items-center justify-between gap-2">
       <div>
-        <h2 class="text-lg font-semibold text-slate-900">AI 批次</h2>
-        <p class="text-sm text-slate-500">查看历史摘要批次及统计</p>
+        <h2 class="text-lg font-semibold text-slate-900">任务历史</h2>
+        <p class="text-sm text-slate-500">查看历史任务运行及统计</p>
       </div>
       <div class="flex items-center gap-3 text-sm text-slate-600">
         <span class="whitespace-nowrap">排序</span>
@@ -193,7 +209,7 @@ function handleSortOrderChange(value: SortOrder) {
       :loading="isLoading"
       :columns="columns"
       :data="batchList"
-      :row-key="(row: AiBatchItem) => row.key"
+      :row-key="(row: AiBatchItem) => row.id"
       bordered
     />
 

@@ -48,7 +48,7 @@ export interface ArchivedProjectsQuery {
 export interface AiBatchQuery {
   page?: number
   pageSize?: number
-  sortField?: 'lastRunAt' | 'lastSuccessAt' | 'updatedAt'
+  sortField?: 'createdAt' | 'lastRunAt' | 'lastSuccessAt' | 'lastErrorAt'
   sortOrder?: 'asc' | 'desc'
 }
 

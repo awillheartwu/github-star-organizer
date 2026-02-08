@@ -67,9 +67,13 @@ export interface ArchivedProjectSnapshot {
 }
 
 export interface AiBatchItem {
+  id: string
+  source: string
   key: string
   lastRunAt?: string | null
   lastSuccessAt?: string | null
+  lastErrorAt?: string | null
+  lastError?: string | null
   statsJson?: string | null
-  updatedAt: string
+  createdAt: string
 }
