@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { ref, defineComponent, h, reactive } from 'vue'
+import { ref, defineComponent, h, reactive, type VNodeChild } from 'vue'
 import { render } from '@testing-library/vue'
 import userEvent from '@testing-library/user-event'
 import AiBatchListView from '../../../views/admin/AiBatchListView.vue'
@@ -117,10 +117,12 @@ vi.mock('naive-ui', () => {
               'tr',
               {},
               (props.columns as Array<Record<string, unknown>>).map((col) => {
-                const render = col.render as ((r: Record<string, unknown>) => unknown) | undefined
+                const render = col.render as
+                  | ((value: Record<string, unknown>, index: number, array: unknown[]) => unknown)
+                  | undefined
                 const key = col.key as string | undefined
                 if (render) {
-                  const rendered = render(row) as unknown
+                  const rendered = render(row, 0, []) as VNodeChild
                   return h('td', {}, [rendered])
                 }
                 return h('td', {}, key ? String(row[key] ?? '') : '')
