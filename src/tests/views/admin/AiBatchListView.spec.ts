@@ -120,11 +120,9 @@ vi.mock('naive-ui', () => {
                 const render = col.render as unknown
                 const key = col.key as string | undefined
                 if (typeof render === 'function') {
-                  const rendered = (render as (value: unknown, index: number, array: unknown[]) => unknown)(
-                    row,
-                    0,
-                    []
-                  ) as VNodeChild
+                  const rendered = (
+                    render as (value: unknown, index: number, array: unknown[]) => unknown
+                  )(row, 0, []) as VNodeChild
                   return h('td', {}, [rendered])
                 }
                 const rowRecord = row as Record<string, unknown>
