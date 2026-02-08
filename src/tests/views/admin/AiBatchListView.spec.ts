@@ -119,7 +119,10 @@ vi.mock('naive-ui', () => {
               (props.columns as Array<Record<string, unknown>>).map((col) => {
                 const render = col.render as ((r: Record<string, unknown>) => unknown) | undefined
                 const key = col.key as string | undefined
-                if (render) return h('td', {}, [render(row) as any])
+                if (render) {
+                  const rendered = render(row) as unknown
+                  return h('td', {}, [rendered])
+                }
                 return h('td', {}, key ? String(row[key] ?? '') : '')
               })
             )
@@ -144,7 +147,8 @@ vi.mock('naive-ui', () => {
           'select',
           {
             'data-testid': 'sort-select',
-            onChange: (event: Event) => emit('update:value', (event.target as HTMLSelectElement).value),
+            onChange: (event: Event) =>
+              emit('update:value', (event.target as HTMLSelectElement).value),
           },
           []
         )
