@@ -112,20 +112,23 @@ vi.mock('naive-ui', () => {
             'data-loading': props.loading ? 'true' : 'false',
             'data-row-count': String((props.data as unknown[]).length),
           },
-          (props.data as unknown[]).map((row: Record<string, unknown>) =>
+          (props.data as unknown[]).map((row) =>
             h(
               'tr',
               {},
               (props.columns as Array<Record<string, unknown>>).map((col) => {
-                const render = col.render as
-                  | ((value: Record<string, unknown>, index: number, array: unknown[]) => unknown)
-                  | undefined
+                const render = col.render as unknown
                 const key = col.key as string | undefined
-                if (render) {
-                  const rendered = render(row, 0, []) as VNodeChild
+                if (typeof render === 'function') {
+                  const rendered = (render as (value: unknown, index: number, array: unknown[]) => unknown)(
+                    row,
+                    0,
+                    []
+                  ) as VNodeChild
                   return h('td', {}, [rendered])
                 }
-                return h('td', {}, key ? String(row[key] ?? '') : '')
+                const rowRecord = row as Record<string, unknown>
+                return h('td', {}, key ? String(rowRecord[key] ?? '') : '')
               })
             )
           )
