@@ -1,0 +1,16 @@
+node_modules
+.pnpm-store
+.git
+.github
+.forgejo
+.env*
+dist
+dist-ssr
+coverage
+logs
+*.log
+*.tsbuildinfo
+.DS_Store
+.idea
+.vscode
+README.md

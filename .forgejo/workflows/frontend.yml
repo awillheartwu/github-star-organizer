@@ -2,7 +2,7 @@ name: Frontend CI
 
 concurrency:
   group: frontend-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 on:
   push:
@@ -19,8 +19,10 @@ on:
       - 'tsconfig*.json'
       - '.forgejo/workflows/frontend.yml'
       - 'Dockerfile'
+      - '.dockerignore'
       - 'docker-compose.yml'
       - 'scripts/deploy-compose.sh'
+      - 'scripts/ci/**'
       - 'nginx.conf'
   pull_request:
     branches: [main]
@@ -36,19 +38,22 @@ on:
       - 'tsconfig*.json'
       - '.forgejo/workflows/frontend.yml'
       - 'Dockerfile'
+      - '.dockerignore'
       - 'docker-compose.yml'
       - 'scripts/deploy-compose.sh'
+      - 'scripts/ci/**'
       - 'nginx.conf'
 
 jobs:
   build-and-test:
     runs-on: [self-hosted, linux, docker]
     container:
-      image: node:22-slim
+      image: node:22-bookworm
     env:
       GSOR_FRONTEND_CONTEXT: .
       NODE_ENV: test
       DOCKER_API_VERSION: '1.43'
+      DOCKER_BUILDKIT: '1'
       VITE_API_BASE_URL: ${{ secrets.GSOR_FE_VITE_API_BASE_URL }}
     steps:
       - name: Checkout
@@ -89,27 +94,8 @@ jobs:
       - name: Run unit tests
         run: pnpm test
 
-      - name: Build
-        run: pnpm build
-
-      - name: Install Docker CLI (Debian bookworm)
-        run: |
-          apt-get update
-          apt-get install -y ca-certificates curl gnupg
-          install -m 0755 -d /etc/apt/keyrings
-          curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-          chmod a+r /etc/apt/keyrings/docker.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-            https://download.docker.com/linux/debian bookworm stable" \
-            > /etc/apt/sources.list.d/docker.list
-          apt-get update
-          apt-get install -y docker-ce-cli docker-compose-plugin
-
-      - name: Sanity check docker
-        run: |
-          echo "DOCKER_HOST=$DOCKER_HOST"
-          echo "DOCKER_API_VERSION=$DOCKER_API_VERSION"
-          docker version
+      - name: Reuse cached Docker CLI and Compose
+        run: sh scripts/ci/install-docker.sh
 
       - name: Build Docker image
         run: |
