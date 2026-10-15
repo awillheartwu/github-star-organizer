@@ -20,6 +20,7 @@ on:
       - '.forgejo/workflows/frontend.yml'
       - 'Dockerfile'
       - 'docker-compose.yml'
+      - 'scripts/deploy-compose.sh'
       - 'nginx.conf'
   pull_request:
     branches: [main]
@@ -36,6 +37,7 @@ on:
       - '.forgejo/workflows/frontend.yml'
       - 'Dockerfile'
       - 'docker-compose.yml'
+      - 'scripts/deploy-compose.sh'
       - 'nginx.conf'
 
 jobs:
@@ -44,6 +46,7 @@ jobs:
     container:
       image: node:22-slim
     env:
+      GSOR_FRONTEND_CONTEXT: .
       NODE_ENV: test
       DOCKER_API_VERSION: '1.43'
       VITE_API_BASE_URL: ${{ secrets.GSOR_FE_VITE_API_BASE_URL }}
@@ -116,13 +119,9 @@ jobs:
             -t gsor-frontend:${{ github.sha }} \
             -f Dockerfile .
 
-      - name: Deploy (docker compose up)
+      - name: Deploy frontend in shared Compose project
         if: github.event_name == 'push'
-        run: |
-          docker compose \
-            --project-directory "$PWD" \
-            -f docker-compose.yml \
-            up -d --no-build --remove-orphans
+        run: bash scripts/deploy-compose.sh web
 
       - name: Cleanup old images (keep latest 3 builds)
         if: github.event_name == 'push'

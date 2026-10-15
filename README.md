@@ -15,6 +15,7 @@ Vue 3 + Naive UI 的管理面板，为 GitHub Star Organizer 后端提供可视�
 - [技术栈](#技术栈)
 - [快速开始](#快速开始)
 - [环境变量](#环境变量)
+- [统一 Compose 部署](#统一-compose-部署)
 - [目录结构](#目录结构)
 - [状态管理与数据流](#状态管理与数据流)
 - [UI 体验](#ui-体验)
@@ -74,6 +75,19 @@ pnpm preview
 | `VITE_API_BASE_URL` | `http://localhost:3000` | 后端 API 地址；根据部署环境修改 |
 
 环境变量按 Vite 约定读取，开发环境可在 `.env.development` 中覆盖。
+
+---
+## 统一 Compose 部署
+
+前后端仓库保留相同的 `docker-compose.yml` 和 `scripts/deploy-compose.sh`，后续修改需同步两份。使用 Docker Compose 2.24 或更新版本；同一 NAS Docker daemon 上仍运行独立的 `web`、`api` 服务，端口和 `core-net` 外部网络保持不变。
+
+CI 各自构建镜像，再执行 `bash scripts/deploy-compose.sh web` 或 `bash scripts/deploy-compose.sh api`，只更新对应服务。部署脚本优先沿用现有后端容器/日志卷的 Compose 项目名，保留原有日志卷；全新安装默认项目名为 `gsor`。多个后端项目同时存在时会停止，需明确设置 `COMPOSE_PROJECT_NAME` 后再部署。
+
+首次部署前端会停止旧项目的 `web`，在后端项目中启动新 `web`，确认 HTTP 响应后删除旧容器；期间有短暂停机。若启动或 HTTP 检查失败，会移除候选容器并尝试恢复旧前端。部署后两项服务归属同一个 Compose 项目，不使用 `--remove-orphans`。
+
+生产环境文件仍只由后端 CI 写入。只有前端部署脚本会允许缺少 `.env.production`，且只更新 `web`；默认 Compose 命令仍要求该文件存在，API 部署脚本还要求它非空。
+
+本地同时构建两项服务时，保留两个仓库的相邻目录名；目录不同可通过 `GSOR_FRONTEND_CONTEXT`、`GSOR_BACKEND_CONTEXT` 指定源码位置。
 
 ---
 ## 目录结构
