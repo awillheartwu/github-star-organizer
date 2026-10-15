@@ -26,6 +26,7 @@ export default defineConfig({
         functions: 55,
       },
     },
-    exclude: [...configDefaults.exclude, 'e2e/**'],
+    // Deployment checks run with node:test in their dedicated CI step.
+    exclude: [...configDefaults.exclude, 'e2e/**', 'scripts/ci/**'],
   },
 })
